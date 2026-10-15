@@ -74,6 +74,7 @@ The project's `.gitignore` excludes `work/`, `.venv/`, generated files, and loca
 
 - [Cleveland Museum of Art Open Access](https://www.clevelandart.org/open-access): records marked CC0, with web and print images.
 - [The Met Open Access](https://www.metmuseum.org/about-the-met/policies-and-documents/open-access): public-domain works with images.
+- [Rijksmuseum Data Services](https://data.rijksmuseum.nl/tutorials/search/): public-domain or CC0 paintings with images from its keyless search and IIIF APIs.
 - [Wikimedia Commons reuse guide](https://commons.wikimedia.org/wiki/Commons:Reusing_content_outside_Wikimedia): files marked public domain or CC0.
 
 Stillroom filters for flat art such as paintings, drawings, prints, and posters, and excludes photography and three-dimensional objects. Each result links to its source record so you can check the image and rights before reuse. The app uses the community-maintained [Samsung TV WebSocket API library](https://github.com/NickWaterton/samsung-tv-ws-api) for optional local TV transfer.

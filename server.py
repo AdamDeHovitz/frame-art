@@ -9,6 +9,7 @@ import json
 import os
 import re
 import sys
+from xml.etree import ElementTree
 from urllib.error import HTTPError, URLError
 from urllib.parse import parse_qs, quote, unquote, urlencode, urlparse, urlunparse
 from urllib.request import Request, urlopen
@@ -25,7 +26,18 @@ IMAGE_HOST = "openaccess-cdn.clevelandart.org"
 MET_IMAGE_HOST = "images.metmuseum.org"
 COMMONS_API = "https://commons.wikimedia.org/w/api.php"
 COMMONS_IMAGE_HOST = "upload.wikimedia.org"
+RIJKS_SEARCH_API = "https://data.rijksmuseum.nl/search/collection"
+RIJKS_RECORD_API = "https://data.rijksmuseum.nl"
+RIJKS_PUBLIC_DOMAIN_SET = "https://id.rijksmuseum.nl/260239"
+RIJKS_IMAGE_HOST = "iiif.micr.io"
 USER_AGENT = "Stillroom/0.1 (local art display app)"
+RDF = "{http://www.w3.org/1999/02/22-rdf-syntax-ns#}"
+XML_LANG = "{http://www.w3.org/XML/1998/namespace}lang"
+RIJKS_NS = {"edm": "http://www.europeana.eu/schemas/edm/",
+            "ore": "http://www.openarchives.org/ore/terms/",
+            "dc": "http://purl.org/dc/elements/1.1/",
+            "dcterms": "http://purl.org/dc/terms/",
+            "skos": "http://www.w3.org/2004/02/skos/core#"}
 
 # Flat visual works suitable for a screen. Keep photography out even when a
 # museum calls a photographic process a print.
@@ -177,6 +189,8 @@ class Handler(SimpleHTTPRequestHandler):
                 payload = self.search_cleveland(term, page)
             elif source == "commons":
                 payload = self.search_commons(term, page)
+            elif source == "rijks":
+                payload = self.search_rijks(term, page)
             else:
                 self.send_error(400, "Unknown collection")
                 return
@@ -195,10 +209,11 @@ class Handler(SimpleHTTPRequestHandler):
             "cleveland": self.search_cleveland,
             "met": self.search_met,
             "commons": self.search_commons,
+            "rijks": self.search_rijks,
         }
         results = {}
         failures = []
-        with ThreadPoolExecutor(max_workers=3) as pool:
+        with ThreadPoolExecutor(max_workers=4) as pool:
             jobs = {pool.submit(search, term, page): name for name, search in searches.items()}
             for job, name in ((job, jobs[job]) for job in jobs):
                 try:
@@ -207,28 +222,140 @@ class Handler(SimpleHTTPRequestHandler):
                     failures.append(f"{name}: {error}")
         if not results:
             raise OSError("All art collections failed: " + "; ".join(failures))
-        items = []
+        grouped = {}
         total = 0
         page_size = 0
         has_more = False
+        source_info = {}
         for name, result in results.items():
+            grouped[name] = []
             for item in result["data"]:
                 if re.search(r"\bkandinsky\b", term, re.IGNORECASE):
                     searchable = f"{item.get('title', '')} {item.get('artistDisplayName', '')}"
                     if not re.search(r"\bkandinsky\b", searchable, re.IGNORECASE):
                         continue
                 item["source"] = name
-                items.append(item)
+                grouped[name].append(item)
             total += result["info"].get("total", 0)
             page_size += result["info"].get("pageSize", 12)
             has_more = has_more or result["info"].get("hasMore", False)
+            source_info[name] = {"hasMore": bool(result["info"].get("hasMore", False))}
+        items = []
+        for index in range(max((len(group) for group in grouped.values()), default=0)):
+            for name in searches:
+                group = grouped.get(name, [])
+                if index < len(group):
+                    items.append(group[index])
         return {"info": {"total": total, "pageSize": page_size, "hasMore": has_more}, "data": items,
+                "sourceInfo": source_info,
                 "warnings": failures}
 
     def fetch_json(self, url):
         request = Request(url, headers={"User-Agent": USER_AGENT, "Accept": "application/json"})
         with urlopen(request, timeout=25) as response:
             return json.loads(response.read())
+
+    def fetch_xml(self, url):
+        request = Request(url, headers={"User-Agent": USER_AGENT, "Accept": "application/rdf+xml"})
+        with urlopen(request, timeout=25) as response:
+            payload = response.read(2 * 1024 * 1024 + 1)
+        if len(payload) > 2 * 1024 * 1024:
+            raise ValueError("Museum record is too large")
+        return ElementTree.fromstring(payload)
+
+    def rijks_ids(self, params, start, count):
+        url = f"{RIJKS_SEARCH_API}?{urlencode(params)}"
+        skipped = 0
+        ids = []
+        total = 0
+        while url and len(ids) < count:
+            data = self.fetch_json(url)
+            batch = data.get("orderedItems") or []
+            total = data.get("partOf", {}).get("totalItems", total)
+            end = skipped + len(batch)
+            if end > start:
+                ids.extend(item["id"] for item in batch[max(0, start - skipped):]
+                           if isinstance(item.get("id"), str))
+            skipped = end
+            next_url = (data.get("next") or {}).get("id")
+            url = next_url if next_url and urlparse(next_url).hostname == "data.rijksmuseum.nl" else None
+        return ids[:count], total
+
+    def rijks_record(self, identifier):
+        if not re.fullmatch(r"https://id\.rijksmuseum\.nl/\d+", identifier):
+            return None
+        object_id = identifier.rsplit("/", 1)[-1]
+        root = self.fetch_xml(f"{RIJKS_RECORD_API}/{object_id}?_profile=edm")
+        aggregation = root.find("ore:Aggregation", RIJKS_NS)
+        work = root.find("edm:ProvidedCHO", RIJKS_NS)
+        if aggregation is None or work is None:
+            return None
+        rights = aggregation.find("edm:rights", RIJKS_NS)
+        rights_url = rights.get(RDF + "resource", "").replace("http://", "https://") if rights is not None else ""
+        if rights_url not in ("https://creativecommons.org/publicdomain/mark/1.0/",
+                              "https://creativecommons.org/publicdomain/zero/1.0/"):
+            return None
+        classes = {item.get(RDF + "resource") for item in work.findall("dc:type", RIJKS_NS)}
+        if "https://id.rijksmuseum.nl/2208" not in classes:
+            return None
+        image = aggregation.find("edm:isShownBy", RIJKS_NS)
+        image_url = image.get(RDF + "resource", "") if image is not None else ""
+        parsed = urlparse(image_url)
+        if parsed.scheme != "https" or parsed.hostname != RIJKS_IMAGE_HOST or not re.fullmatch(
+                r"/[A-Za-z0-9_-]+/full/max/0/default\.jpg", parsed.path):
+            return None
+        titles = work.findall("dc:title", RIJKS_NS)
+        title = next((item.text for item in titles if item.text and item.get(XML_LANG) == "en"), None)
+        title = title or next((item.text for item in titles if item.text), "Untitled")
+        creator = work.find("dc:creator", RIJKS_NS)
+        creator_id = creator.get(RDF + "resource") if creator is not None else None
+        artist = ""
+        for agent in root.findall("edm:Agent", RIJKS_NS):
+            if agent.get(RDF + "about") == creator_id:
+                labels = agent.findall("skos:prefLabel", RIJKS_NS)
+                artist = next((label.text for label in labels if label.text and label.get(XML_LANG) == "en"),
+                              None) or next((label.text for label in labels if label.text), "")
+                break
+        dates = work.findall("dcterms:created", RIJKS_NS)
+        date = next((item.text for item in dates if item.text and item.get(XML_LANG) == "en"),
+                    None) or next((item.text for item in dates if item.text), "")
+        source_page = aggregation.find("edm:isShownAt", RIJKS_NS)
+        object_url = source_page.get(RDF + "resource") if source_page is not None else identifier
+        return {"id": f"rijks-{object_id}", "title": title, "artistDisplayName": artist,
+                "objectDate": date, "objectURL": object_url, "museum": "Rijksmuseum",
+                "images": {"web": {"url": image_url.replace("/full/max/", "/full/!1200,1200/")},
+                           "print": {"url": image_url.replace("/full/max/", "/full/!3840,3840/")}}}
+
+    def search_rijks(self, term, page):
+        if page > 100:
+            return {"info": {"total": 0, "pageSize": 10, "hasMore": False}, "data": []}
+        cleaned = re.sub(r"\b(?:paintings?|artworks?|art)\b", "", term, flags=re.IGNORECASE).strip()
+        modes = ("creator", "title") if cleaned else (None,)
+        per_mode = 5 if cleaned else 10
+        start = (page - 1) * per_mode
+        ids = []
+        total = 0
+        counts = []
+        for mode in modes:
+            params = {"type": "painting", "imageAvailable": "true",
+                      "memberOfSetId": RIJKS_PUBLIC_DOMAIN_SET}
+            if mode:
+                params[mode] = cleaned
+            found, count = self.rijks_ids(params, start, per_mode)
+            ids.extend(found)
+            total += count
+            counts.append(count)
+        ids = list(dict.fromkeys(ids))
+        def resolve(identifier):
+            try:
+                return self.rijks_record(identifier)
+            except (HTTPError, URLError, TimeoutError, OSError, ValueError, ElementTree.ParseError):
+                return None
+        with ThreadPoolExecutor(max_workers=6) as pool:
+            works = [item for item in pool.map(resolve, ids) if item]
+        return {"info": {"total": total, "pageSize": 10,
+                          "hasMore": any(start + per_mode < count for count in counts)},
+                "data": works}
 
     def search_cleveland(self, term, page):
         params = urlencode({
@@ -372,8 +499,10 @@ class Handler(SimpleHTTPRequestHandler):
         allowed_cleveland = parsed.hostname == IMAGE_HOST and parsed.path.lower().endswith(("_web.jpg", "_print.jpg"))
         allowed_met = parsed.hostname == MET_IMAGE_HOST and parsed.path.lower().endswith((".jpg", ".jpeg"))
         allowed_commons = parsed.hostname in {COMMONS_IMAGE_HOST, "thumb.wikimedia.org"} and parsed.path.startswith("/wikipedia/commons/")
-        if parsed.scheme != "https" or not (allowed_cleveland or allowed_met or allowed_commons):
-            self.send_error(400, "Only approved Cleveland, Met, and Wikimedia Commons image URLs are available through this route")
+        allowed_rijks = parsed.hostname == RIJKS_IMAGE_HOST and re.fullmatch(
+            r"/[A-Za-z0-9_-]+/full/!(?:1200,1200|3840,3840)/0/default\.jpg", parsed.path)
+        if parsed.scheme != "https" or not (allowed_cleveland or allowed_met or allowed_commons or allowed_rijks):
+            self.send_error(400, "Only approved museum image URLs are available through this route")
             return
         request = Request(source, headers={"User-Agent": USER_AGENT, "Accept": "image/*" if allowed_commons else "image/jpeg"})
         try:

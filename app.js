@@ -4,7 +4,7 @@ const statusEl = document.querySelector('#status');
 const canvas = document.querySelector('#preview');
 const ctx = canvas.getContext('2d');
 const frame = document.querySelector('.preview-mat');
-const art = { items: [], selected: null, image: null, page: 1, query: '', orientation: 'landscape', x: 50, y: 50, zoom: 100, saved: JSON.parse(localStorage.getItem('stillroom-saved-v2') || '[]'), crops: JSON.parse(localStorage.getItem('stillroom-crops-v1') || '{}'), checked: new Set(), searchId: 0, selectionId: 0, loading: false, hasMore: true };
+const art = { items: [], selected: null, image: null, page: 1, query: '', orientation: 'landscape', x: 50, y: 50, zoom: 100, saved: JSON.parse(localStorage.getItem('stillroom-saved-v2') || '[]'), crops: JSON.parse(localStorage.getItem('stillroom-crops-v1') || '{}'), checked: new Set(), searchId: 0, selectionId: 0, loading: false, hasMore: true, allHasMore: true, sourceHasMore: {} };
 const tv = { paired: false, available: false, ip: null, busy: false };
 const tvLibrary = { page: 0, hasMore: false, loading: false, items: [], selected: new Set() };
 let collections=[];
@@ -60,7 +60,7 @@ async function verifyCandidates(candidates,searchId,needed){
 
 async function search(reset=true){
   if(art.loading&&!reset)return;
-  if(reset){activeCollection=null;document.querySelector('#collectionActions').hidden=true;document.querySelectorAll('.collection-card').forEach(card=>card.classList.remove('active'));art.searchId++;art.page=1;art.items=[];art.checked.clear();art.hasMore=true;grid.innerHTML='';syncTvButton()}
+  if(reset){activeCollection=null;document.querySelector('#collectionActions').hidden=true;document.querySelectorAll('.collection-card').forEach(card=>card.classList.remove('active'));art.searchId++;art.page=1;art.items=[];art.checked.clear();art.hasMore=true;art.allHasMore=true;art.sourceHasMore={};grid.innerHTML='';syncTvButton()}
   const searchId=art.searchId;
   art.loading=true;
   const loadMoreButton=document.querySelector('#loadMore');loadMoreButton.disabled=true;loadMoreButton.hidden=true;
@@ -78,7 +78,10 @@ async function search(reset=true){
       // let its late response advance the new query's page cursor or hasMore.
       if(searchId!==art.searchId)return;
       art.page++;
-      art.hasMore=Boolean(data.info?.hasMore);
+      art.allHasMore=Boolean(data.info?.hasMore);
+      art.sourceHasMore=Object.fromEntries(Object.entries(data.sourceInfo||{}).map(([name,info])=>[name,Boolean(info.hasMore)]));
+      const selectedSource=document.querySelector('#sourceFilter').value;
+      art.hasMore=selectedSource==='all'?art.allHasMore:Boolean(art.sourceHasMore[selectedSource]);
       const candidates=data.data.filter(x=>x.images?.web?.url && x.images?.print?.url);
       const verified=await verifyCandidates(candidates,searchId,Math.max(1,targetCount-visibleItems().length));
       if(searchId!==art.searchId)return;
@@ -426,11 +429,13 @@ document.querySelector('#sourceFilter').addEventListener('change',()=>{
   redrawGrid();
   const count=visibleItems().length;
   setStatus(`${count} loaded ${count===1?'work':'works'} from this source filter`);
+  const selectedSource=document.querySelector('#sourceFilter').value;
+  art.hasMore=selectedSource==='all'?art.allHasMore:Boolean(art.sourceHasMore[selectedSource]);
   if(count<RESULTS_PER_BATCH&&art.hasMore&&!art.loading)search(false);
 });
 document.querySelectorAll('.chip').forEach(c=>c.addEventListener('click',()=>{document.querySelectorAll('.chip').forEach(x=>x.classList.toggle('active',x===c));art.query=c.dataset.query;document.querySelector('#searchInput').value='';search()}));
 document.querySelector('#surpriseBtn').addEventListener('click',()=>{const ideas=['impressionist painting','Japanese woodblock print','Dutch still life','seascape painting','wildflower painting','mountain landscape','abstract painting','French art'];art.query=ideas[Math.floor(Math.random()*ideas.length)];document.querySelector('#searchInput').value='';document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));search()});
-document.querySelector('#loadMore').addEventListener('click',()=>{art.page++;search(false)});
+document.querySelector('#loadMore').addEventListener('click',()=>search(false));
 document.querySelectorAll('.orientation').forEach(b=>b.addEventListener('click',()=>{art.orientation=b.dataset.orientation;document.querySelectorAll('.orientation').forEach(x=>x.classList.toggle('active',x===b));drawPreview()}));
 for(const [id,key] of [['#posX','x'],['#posY','y']])document.querySelector(id).addEventListener('input',e=>{art[key]=Number(e.target.value);saveCrop();drawPreview()});
 document.querySelector('#zoom').addEventListener('input',e=>{art.zoom=Number(e.target.value);document.querySelector('#zoomValue').textContent=`${art.zoom}%`;saveCrop();drawPreview()});
