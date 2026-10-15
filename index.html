@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#f5f2eb" />
+  <title>Stillroom — art for your Frame</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#" aria-label="Stillroom home"><span class="brand-mark">S</span><span>stillroom</span></a>
+    <div class="top-note"><span class="live-dot"></span> Art for the everyday</div>
+    <div class="top-actions"><button class="top-tv-link" id="tvLibraryJump" type="button">On your TV ↘</button><button class="icon-button" id="savedToggle" aria-label="Show saved art" title="Saved art">♡ <span id="savedCount">0</span></button></div>
+  </header>
+
+  <main>
+    <section class="intro">
+      <p class="eyebrow">A little more gallery, a little less screen</p>
+      <h1>Find a work<br /><em>worth living with.</em></h1>
+      <p class="intro-copy">Explore open-access flat artworks, compose them for your Frame, and send them straight to your TV.</p>
+    </section>
+
+    <section class="collections-section" aria-label="Curated art collections">
+      <div class="collections-heading"><div><p class="eyebrow">Ready to live with</p><h2>Curated collections</h2></div><p>Choose a seasonal set, or make your own with ♡.</p></div>
+      <div id="collectionCards" class="collection-cards"><p class="muted">Loading collections…</p></div>
+    </section>
+
+    <section class="workspace" aria-label="Artwork explorer">
+      <div class="gallery-panel">
+        <div class="section-heading">
+          <div><p class="eyebrow">The collection</p><h2 id="collectionTitle">Open a window</h2></div>
+          <button class="text-button" id="surpriseBtn">Surprise me <span>↗</span></button>
+        </div>
+        <div id="collectionActions" class="collection-actions" hidden>
+          <p id="collectionDescription"></p>
+          <div class="collection-action-row"><label>Change artwork every <select id="slideInterval"><option value="1">1 minute</option><option value="5" selected>5 minutes</option><option value="15">15 minutes</option><option value="30">30 minutes</option><option value="60">1 hour</option></select></label><button id="sendCollectionBtn" type="button" disabled>Send all to TV & start slideshow</button></div>
+          <p class="collection-note">Each work is cropped to 16:9 with a small edge trim. Stillroom rotates this exact set while the server is running.</p>
+          <p id="collectionStatus" role="status"></p>
+        </div>
+        <div id="slideshowBanner" class="slideshow-banner" hidden><span id="slideshowBannerText"></span><button id="stopSlideshowBtn" type="button">Stop slideshow</button></div>
+        <form id="searchForm" class="search-row">
+          <label class="search-box"><span>⌕</span><input id="searchInput" type="search" placeholder="Search paintings, artists, moods…" aria-label="Search artwork" /></label>
+          <button class="dark-button" type="submit">Search</button>
+        </form>
+        <label class="source-picker">Filter by collection<select id="sourceFilter"><option value="all">All collections</option><option value="cleveland">Cleveland Museum of Art</option><option value="met">The Met</option><option value="commons">Wikimedia Commons</option></select></label>
+        <div class="filters" aria-label="Browse suggestions">
+          <button class="chip active" data-query="">All flat art</button>
+          <button class="chip" data-query="landscape painting">Landscapes</button>
+          <button class="chip" data-query="flowers still life">Still life</button>
+          <button class="chip" data-query="portrait painting">Portraits</button>
+          <button class="chip" data-query="Vincent van Gogh">Van Gogh</button>
+          <button class="chip" data-query="Kandinsky">Kandinsky</button>
+          <button class="chip" data-query="modern art">Modern art</button>
+        </div>
+        <div id="artGrid" class="art-grid" aria-live="polite"></div>
+        <div id="status" class="status" role="status">Loading public-domain artworks…</div>
+        <button class="load-more" id="loadMore">Load more works <span>＋</span></button>
+        <p class="source-note">Searching all collections by default · Filter results by collection above</p>
+      </div>
+
+      <aside class="studio-panel">
+        <div class="studio-head"><div><p class="eyebrow">Your composition</p><h2>Frame preview</h2></div><span class="step-tag">01 / 02</span></div>
+        <div class="preview-wrap">
+          <div id="tvBezel" class="tv-bezel bezel-black"><div class="preview-mat"><canvas id="preview" width="960" height="540" aria-label="Cropped artwork preview"></canvas><div class="empty-preview" id="emptyPreview"><span>✳</span><b>Your next favorite<br />starts here.</b><small>Select a work to compose it</small></div></div></div>
+        </div>
+        <div class="bezel-choice"><label for="bezelSelect">Preview frame</label><select id="bezelSelect" aria-label="Preview frame color"><option value="black">Classic black</option><option value="white">White</option><option value="teak">Teak</option><option value="brown">Brown</option><option value="sand-gold">Sand Gold</option></select><small>Preview only · artwork stays border-free</small></div>
+        <div class="selected-meta"><div><h3 id="selectedTitle">Choose a painting</h3><p id="selectedArtist">Your preview will appear here.</p></div><button id="saveButton" class="heart-button" aria-label="Save artwork" disabled>♡</button></div>
+        <div class="controls">
+          <div class="control-heading"><span>Screen orientation</span><span class="muted">Choose how your TV is mounted</span></div>
+          <div class="segmented"><button class="orientation active" data-orientation="landscape">Landscape <small>16:9</small></button><button class="orientation" data-orientation="portrait">Portrait <small>9:16</small></button></div>
+          <div class="control-heading crop-heading"><span>Adjust crop</span><span class="muted">Drag image to reposition</span></div>
+          <div class="position-controls"><label>Horizontal <input id="posX" type="range" min="0" max="100" value="50" /></label><label>Vertical <input id="posY" type="range" min="0" max="100" value="50" /></label></div>
+          <label class="zoom-control"><span>Trim artwork edges <small id="zoomValue">100%</small></span><input id="zoom" type="range" min="100" max="120" step="1" value="100" aria-label="Zoom in to trim artwork edges" /></label>
+        </div>
+        <div class="tv-connect"><div class="tv-connect-heading"><b>Connect your Frame TV</b><button id="transferHelp" class="inline-link" type="button">Find your TV’s IP ↗</button></div><p>Keep the TV and this computer on the same home network. Enter the TV’s IP address below.</p><div class="tv-connect-row"><input id="tvIp" type="text" inputmode="decimal" autocomplete="off" placeholder="192.168.1.50" aria-label="Frame TV IP address" /><button id="pairBtn" type="button">Pair TV</button></div><p id="tvStatus" class="tv-status" role="status">Checking TV connection…</p></div>
+        <button id="sendBtn" class="export-button send-button" disabled><span>Send to Frame TV</span><span>↗</span></button>
+        <button id="downloadBtn" class="export-button download-button" disabled><span>Download TV-ready artwork</span><span>↓</span></button>
+        <p class="fine-print">Exported at up to 3840 × 2160. Art Mode may add a mat depending on the image and TV settings.</p>
+      </aside>
+    </section>
+
+    <section class="tv-library-section" id="tvLibrary" aria-label="Photos on your Frame TV">
+      <div class="tv-library-heading"><div><p class="eyebrow">Your Frame TV</p><h2>My Photos on TV</h2><p>See the photos currently stored in Art Mode, including ones added outside Stillroom.</p></div><button id="refreshTvPhotos" type="button">Refresh TV photos ↻</button></div>
+      <p id="tvPhotoStatus" class="tv-photo-status" role="status">Pair your Frame TV to see its photos.</p>
+      <div id="tvPhotoToolbar" class="tv-photo-toolbar" hidden><span id="tvPhotoSelectedCount">0 selected</span><button id="deleteTvPhotos" type="button" disabled>Delete selected from TV</button></div>
+      <div id="tvPhotoGrid" class="tv-photo-grid" aria-live="polite"></div>
+      <button id="loadMoreTvPhotos" class="load-more" type="button" hidden>Load more TV photos <span>＋</span></button>
+    </section>
+  </main>
+
+  <dialog id="helpDialog"><button class="dialog-close" id="closeDialog" aria-label="Close">×</button><p class="eyebrow">Connect to your Frame</p><h2>Find your TV’s IP address</h2><ol><li>Turn on your TV. Keep it and this computer connected to the same home network.</li><li>On the TV remote, open <b>Settings → All Settings → Connection → Network → Network Status → IP Settings</b>. Find the number labeled <b>IP Address</b>. On older TVs, try <b>Settings → General → Network → Network Status → IP Settings</b>.</li><li>Type that number in Stillroom’s TV address box. Use the numbers and dots only, then select <b>Pair TV</b>.</li><li>Look at the TV and accept the <b>Stillroom</b> connection request. Once paired, choose a work and select <b>Send to Frame TV</b>.</li></ol><p class="dialog-note">If pairing fails, check that the address belongs to the TV, the TV is awake, and neither device is on an isolated guest network. Menus can vary by model. <a href="https://www.samsung.com/ca/support/tv-audio-video/verify-network-status-on-your-samsung-tv/" target="_blank" rel="noopener noreferrer">Samsung’s network guide ↗</a><br />Direct transfer depends on the TV’s Art Mode support. You can always download the JPEG and add it with SmartThings or USB.</p></dialog>
+  <dialog id="deleteTvDialog"><p class="eyebrow">Remove from My Photos</p><h2>Delete these TV photos?</h2><p id="deleteTvDialogCopy" class="delete-dialog-copy"></p><div class="delete-dialog-actions"><button id="cancelDeleteTv" type="button">Cancel</button><button id="confirmDeleteTv" type="button">Delete from TV</button></div></dialog>
+  <footer><span>stillroom <span class="footer-dot">·</span> A quiet corner for good art</span><a id="openAccessLink" href="https://www.si.edu/openaccess/faq" target="_blank" rel="noreferrer">About Open Access ↗</a></footer>
+  <script src="app.js"></script>
+</body>
+</html>

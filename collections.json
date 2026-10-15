@@ -1,0 +1,304 @@
+{
+  "collections": [
+    {
+      "id": "spring",
+      "title": "Spring in bloom",
+      "description": "Flowers, gardens, and soft green light.",
+      "works": [
+        {
+          "id": "cma-130391",
+          "source": "cleveland",
+          "title": "Spring Flowers",
+          "artistDisplayName": "Claude Monet (French, 1840–1926)",
+          "objectDate": "1864",
+          "objectURL": "https://clevelandart.org/art/1953.155",
+          "museum": "Cleveland Museum of Art",
+          "images": {
+            "web": {
+              "url": "https://openaccess-cdn.clevelandart.org/1953.155/1953.155_web.jpg"
+            },
+            "print": {
+              "url": "https://openaccess-cdn.clevelandart.org/1953.155/1953.155_print.jpg"
+            }
+          }
+        },
+        {
+          "id": "cma-173665",
+          "source": "cleveland",
+          "title": "Orchid Blossoms",
+          "artistDisplayName": "Martin Johnson Heade (American, 1819–1904)",
+          "objectDate": "1873",
+          "objectURL": "https://clevelandart.org/art/1915.461",
+          "museum": "Cleveland Museum of Art",
+          "images": {
+            "web": {
+              "url": "https://openaccess-cdn.clevelandart.org/1915.461/1915.461_web.jpg"
+            },
+            "print": {
+              "url": "https://openaccess-cdn.clevelandart.org/1915.461/1915.461_print.jpg"
+            }
+          }
+        },
+        {
+          "id": "cma-173480",
+          "source": "cleveland",
+          "title": "Apple Blossoms",
+          "artistDisplayName": "Martin Johnson Heade (American, 1819–1904)",
+          "objectDate": "1873",
+          "objectURL": "https://clevelandart.org/art/1915.687",
+          "museum": "Cleveland Museum of Art",
+          "images": {
+            "web": {
+              "url": "https://openaccess-cdn.clevelandart.org/1915.687/1915.687_web.jpg"
+            },
+            "print": {
+              "url": "https://openaccess-cdn.clevelandart.org/1915.687/1915.687_print.jpg"
+            }
+          }
+        },
+        {
+          "id": "cma-136510",
+          "source": "cleveland",
+          "title": "Water Lilies (Agapanthus)",
+          "artistDisplayName": "Claude Monet (French, 1840–1926)",
+          "objectDate": "c. 1915–26",
+          "objectURL": "https://clevelandart.org/art/1960.81",
+          "museum": "Cleveland Museum of Art",
+          "images": {
+            "web": {
+              "url": "https://openaccess-cdn.clevelandart.org/1960.81/1960.81_web.jpg"
+            },
+            "print": {
+              "url": "https://openaccess-cdn.clevelandart.org/1960.81/1960.81_print.jpg"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "summer",
+      "title": "Long summer days",
+      "description": "Open landscapes and sunlit places.",
+      "works": [
+        {
+          "id": "cma-95287",
+          "source": "cleveland",
+          "title": "Summer",
+          "artistDisplayName": "Pierre Puvis de Chavannes (French, 1824–1898)",
+          "objectDate": "1891",
+          "objectURL": "https://clevelandart.org/art/1916.1056",
+          "museum": "Cleveland Museum of Art",
+          "images": {
+            "web": {
+              "url": "https://openaccess-cdn.clevelandart.org/1916.1056/1916.1056_web.jpg"
+            },
+            "print": {
+              "url": "https://openaccess-cdn.clevelandart.org/1916.1056/1916.1056_print.jpg"
+            }
+          }
+        },
+        {
+          "id": "cma-172815",
+          "source": "cleveland",
+          "title": "Mount Starr King, Yosemite",
+          "artistDisplayName": "Albert Bierstadt (American, born Prussia [now Germany], 1830–1902)",
+          "objectDate": "1866",
+          "objectURL": "https://clevelandart.org/art/1922.684",
+          "museum": "Cleveland Museum of Art",
+          "images": {
+            "web": {
+              "url": "https://openaccess-cdn.clevelandart.org/1922.684/1922.684_web.jpg"
+            },
+            "print": {
+              "url": "https://openaccess-cdn.clevelandart.org/1922.684/1922.684_print.jpg"
+            }
+          }
+        },
+        {
+          "id": "cma-699644",
+          "source": "cleveland",
+          "title": "A Mountain Stream",
+          "artistDisplayName": "Julie H. Beers (American, 1835–1913)",
+          "objectDate": "1870",
+          "objectURL": "https://clevelandart.org/art/2025.199",
+          "museum": "Cleveland Museum of Art",
+          "images": {
+            "web": {
+              "url": "https://openaccess-cdn.clevelandart.org/2025.199/2025.199_web.jpg"
+            },
+            "print": {
+              "url": "https://openaccess-cdn.clevelandart.org/2025.199/2025.199_print.jpg"
+            }
+          }
+        },
+        {
+          "id": "cma-157104",
+          "source": "cleveland",
+          "title": "The Seine at Bas-Meudon",
+          "artistDisplayName": "Johan Barthold Jongkind (Dutch, 1819–1891)",
+          "objectDate": "1865",
+          "objectURL": "https://clevelandart.org/art/1993.236",
+          "museum": "Cleveland Museum of Art",
+          "images": {
+            "web": {
+              "url": "https://openaccess-cdn.clevelandart.org/1993.236/1993.236_web.jpg"
+            },
+            "print": {
+              "url": "https://openaccess-cdn.clevelandart.org/1993.236/1993.236_print.jpg"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "autumn",
+      "title": "Autumn color",
+      "description": "Warm foliage and gathering dusk.",
+      "works": [
+        {
+          "id": "cma-134072",
+          "source": "cleveland",
+          "title": "Sunny Autumn Day",
+          "artistDisplayName": "George Inness (American, 1825–1894)",
+          "objectDate": "1892",
+          "objectURL": "https://clevelandart.org/art/1956.578",
+          "museum": "Cleveland Museum of Art",
+          "images": {
+            "web": {
+              "url": "https://openaccess-cdn.clevelandart.org/1956.578/1956.578_web.jpg"
+            },
+            "print": {
+              "url": "https://openaccess-cdn.clevelandart.org/1956.578/1956.578_print.jpg"
+            }
+          }
+        },
+        {
+          "id": "cma-172806",
+          "source": "cleveland",
+          "title": "Autumn, a Wood Path",
+          "artistDisplayName": "Sanford Robinson Gifford (American, 1823–1880)",
+          "objectDate": "1876",
+          "objectURL": "https://clevelandart.org/art/1922.220",
+          "museum": "Cleveland Museum of Art",
+          "images": {
+            "web": {
+              "url": "https://openaccess-cdn.clevelandart.org/1922.220/1922.220_web.jpg"
+            },
+            "print": {
+              "url": "https://openaccess-cdn.clevelandart.org/1922.220/1922.220_print.jpg"
+            }
+          }
+        },
+        {
+          "id": "cma-169767",
+          "source": "cleveland",
+          "title": "Canal in Autumn (Gisors)",
+          "artistDisplayName": "Henri Le Sidaner (French, 1862–1939)",
+          "objectDate": "1913",
+          "objectURL": "https://clevelandart.org/art/2011.73",
+          "museum": "Cleveland Museum of Art",
+          "images": {
+            "web": {
+              "url": "https://openaccess-cdn.clevelandart.org/2011.73/2011.73_web.jpg"
+            },
+            "print": {
+              "url": "https://openaccess-cdn.clevelandart.org/2011.73/2011.73_print.jpg"
+            }
+          }
+        },
+        {
+          "id": "cma-173181",
+          "source": "cleveland",
+          "title": "Autumn Scene in the Adirondacks",
+          "artistDisplayName": "William Hart (American, born Scotland, 1823–1894)",
+          "objectDate": "1877",
+          "objectURL": "https://clevelandart.org/art/1915.685",
+          "museum": "Cleveland Museum of Art",
+          "images": {
+            "web": {
+              "url": "https://openaccess-cdn.clevelandart.org/1915.685/1915.685_web.jpg"
+            },
+            "print": {
+              "url": "https://openaccess-cdn.clevelandart.org/1915.685/1915.685_print.jpg"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "winter",
+      "title": "Quiet winter",
+      "description": "Snow, pale skies, and calm horizons.",
+      "works": [
+        {
+          "id": "cma-93015",
+          "source": "cleveland",
+          "title": "The Park-Winter",
+          "artistDisplayName": "Leon Kroll (American, 1884–1974)",
+          "objectDate": "1923",
+          "objectURL": "https://clevelandart.org/art/1923.1339",
+          "museum": "Cleveland Museum of Art",
+          "images": {
+            "web": {
+              "url": "https://openaccess-cdn.clevelandart.org/1923.1339/1923.1339_web.jpg"
+            },
+            "print": {
+              "url": "https://openaccess-cdn.clevelandart.org/1923.1339/1923.1339_print.jpg"
+            }
+          }
+        },
+        {
+          "id": "cma-109239",
+          "source": "cleveland",
+          "title": "A Winter Sky",
+          "artistDisplayName": "George Inness (American, 1825–1894)",
+          "objectDate": "1866",
+          "objectURL": "https://clevelandart.org/art/1927.388",
+          "museum": "Cleveland Museum of Art",
+          "images": {
+            "web": {
+              "url": "https://openaccess-cdn.clevelandart.org/1927.388/1927.388_web.jpg"
+            },
+            "print": {
+              "url": "https://openaccess-cdn.clevelandart.org/1927.388/1927.388_print.jpg"
+            }
+          }
+        },
+        {
+          "id": "cma-166506",
+          "source": "cleveland",
+          "title": "Winter Landscape",
+          "artistDisplayName": "Jan Griffier (Dutch, 1648–1718)",
+          "objectDate": "c. 1680–1718",
+          "objectURL": "https://clevelandart.org/art/2008.287",
+          "museum": "Cleveland Museum of Art",
+          "images": {
+            "web": {
+              "url": "https://openaccess-cdn.clevelandart.org/2008.287/2008.287_web.jpg"
+            },
+            "print": {
+              "url": "https://openaccess-cdn.clevelandart.org/2008.287/2008.287_print.jpg"
+            }
+          }
+        },
+        {
+          "id": "cma-104197",
+          "source": "cleveland",
+          "title": "Murol in the Snow",
+          "artistDisplayName": "Victor Charreton (French, 1864–1936)",
+          "objectDate": "c. 1920",
+          "objectURL": "https://clevelandart.org/art/1922.358",
+          "museum": "Cleveland Museum of Art",
+          "images": {
+            "web": {
+              "url": "https://openaccess-cdn.clevelandart.org/1922.358/1922.358_web.jpg"
+            },
+            "print": {
+              "url": "https://openaccess-cdn.clevelandart.org/1922.358/1922.358_print.jpg"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

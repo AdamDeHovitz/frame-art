@@ -1,0 +1,21 @@
+# Local TV address, pairing tokens, and other runtime state.
+/work/
+
+# Local Python installation and generated files.
+/.venv/
+/__pycache__/
+*.py[cod]
+
+# Local exports, caches, logs, and operating-system files.
+/outputs/
+*.log
+.DS_Store
+
+# Local credentials if added during development.
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
