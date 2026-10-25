@@ -5,6 +5,7 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
 from html import unescape
+import argparse
 import json
 import os
 import re
@@ -13,12 +14,15 @@ from xml.etree import ElementTree
 from urllib.error import HTTPError, URLError
 from urllib.parse import parse_qs, quote, unquote, urlencode, urlparse, urlunparse
 from urllib.request import Request, urlopen
+from lan_security import normalize_origin
 from tv_transfer import (TVTransferError, pair as pair_tv, status as tv_status,
                          upload as upload_tv, slideshow_status, start_slideshow,
                          stop_slideshow, list_photos, delete_photos)
 
 
 ROOT = Path(__file__).resolve().parent
+STATIC_ASSETS = {"/", "/index.html", "/app.js", "/styles.css", "/network.js",
+                 "/fonts/dm-sans.ttf", "/fonts/playfair-display.ttf", "/fonts/playfair-display-italic.ttf"}
 API_URL = "https://openaccess-api.clevelandart.org/api/artworks/"
 MET_API = "https://collectionapi.metmuseum.org/public/collection/v1"
 MET_SEARCH_API = "https://collectionapi.metmuseum.org/public/collection/v1.1/search"
@@ -59,10 +63,41 @@ def is_flat_art(*labels):
 
 
 class Handler(SimpleHTTPRequestHandler):
+    server_version = "Stillroom"
+    sys_version = ""
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=str(ROOT), **kwargs)
 
+    def setup(self):
+        super().setup()
+        self.connection.settimeout(40)
+
+    def handle_one_request(self):
+        try:
+            super().handle_one_request()
+        except (BrokenPipeError, ConnectionResetError):
+            # Navigation may cancel an in-flight image or API response.
+            self.close_connection = True
+
+    def end_headers(self):
+        self.send_header("X-Content-Type-Options", "nosniff")
+        self.send_header("X-Frame-Options", "DENY")
+        self.send_header("Referrer-Policy", "same-origin")
+        self.send_header("Content-Security-Policy",
+                         "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; "
+                         "img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; "
+                         "frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'")
+        if getattr(self.server, "lan_origin", None):
+            # Keep shared-network pages and responses fresh across devices.
+            self.send_header("Cache-Control", "no-store")
+        if urlparse(self.path).path in ("/", "/index.html", "/app.js", "/styles.css"):
+            self.send_header("Cache-Control", "no-store")
+        super().end_headers()
+
     def do_GET(self):
+        if not self.request_allowed():
+            return
         parsed = urlparse(self.path)
         if parsed.path == "/api/tv/status":
             if not self.local_tv_request_allowed():
@@ -91,21 +126,59 @@ class Handler(SimpleHTTPRequestHandler):
             self.proxy_search(parse_qs(parsed.query))
         elif parsed.path == "/image":
             self.proxy_image(parse_qs(parsed.query))
-        elif parsed.path in ("/", "/index.html", "/app.js", "/styles.css"):
+        elif parsed.path in STATIC_ASSETS:
             super().do_GET()
         else:
             self.send_error(404, "Not found")
 
-    def send_json(self, status, payload):
+    def do_HEAD(self):
+        # Never inherit SimpleHTTPRequestHandler's unrestricted file lookup.
+        self.do_GET()
+
+    def copyfile(self, source, outputfile):
+        if self.command != "HEAD":
+            super().copyfile(source, outputfile)
+
+    def send_json(self, status, payload, headers=None):
         encoded = json.dumps(payload).encode("utf-8")
         self.send_response(status)
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("Cache-Control", "no-store")
         self.send_header("Content-Length", str(len(encoded)))
+        for name, value in (headers or {}).items():
+            self.send_header(name, value)
         self.end_headers()
-        self.wfile.write(encoded)
+        if self.command != "HEAD":
+            self.wfile.write(encoded)
+
+    def request_allowed(self):
+        """Reject unexpected hosts and requests from unrelated websites."""
+        origin = getattr(self.server, "lan_origin", None)
+        host_values = self.headers.get_all("Host", [])
+        allowed_hosts = ({urlparse(origin).netloc} if origin else
+                         {f"127.0.0.1:{self.server.server_port}", f"localhost:{self.server.server_port}",
+                          f"[::1]:{self.server.server_port}"})
+        if len(host_values) != 1 or host_values[0] not in allowed_hosts:
+            self.send_json(403, {"error": "Use Stillroom's configured address."})
+            return False
+        fetch_site = self.headers.get("Sec-Fetch-Site")
+        supplied_origin = self.headers.get("Origin")
+        expected_origin = origin or "http://" + host_values[0]
+        if (fetch_site not in (None, "same-origin", "none")
+                or supplied_origin is not None and supplied_origin != expected_origin):
+            self.send_json(403, {"error": "Requests must come from Stillroom."})
+            return False
+        if self.command == "POST" and origin:
+            if (self.headers.get_all("Origin", []) != [origin]
+                    or self.headers.get("X-Stillroom-Request") != "1"):
+                self.send_json(403, {"error": "Reload Stillroom before trying again."})
+                return False
+        return True
 
     def local_tv_request_allowed(self):
+        if getattr(self.server, "lan_origin", None):
+            # request_allowed already checked the configured host and browser origin.
+            return True
         host = urlparse("http://" + self.headers.get("Host", ""))
         origin_value = self.headers.get("Origin")
         origin = urlparse(origin_value) if origin_value else None
@@ -121,6 +194,8 @@ class Handler(SimpleHTTPRequestHandler):
                                     and origin_port == host_port)))
 
     def do_POST(self):
+        if not self.request_allowed():
+            return
         parsed = urlparse(self.path)
         path = parsed.path
         if path not in ("/api/tv/pair", "/api/tv/upload",
@@ -200,7 +275,10 @@ class Handler(SimpleHTTPRequestHandler):
             self.send_header("Cache-Control", "no-store")
             self.send_header("Content-Length", str(len(encoded)))
             self.end_headers()
-            self.wfile.write(encoded)
+            if self.command != "HEAD":
+                self.wfile.write(encoded)
+        except (BrokenPipeError, ConnectionResetError):
+            return
         except (HTTPError, URLError, TimeoutError, OSError, ValueError, KeyError) as error:
             self.send_error(502, f"Museum search failed: {error}")
 
@@ -517,10 +595,14 @@ class Handler(SimpleHTTPRequestHandler):
                 return
             self.send_response(200)
             self.send_header("Content-Type", content_type or "image/jpeg")
-            self.send_header("Cache-Control", "public, max-age=86400")
+            if not getattr(self.server, "lan_origin", None):
+                self.send_header("Cache-Control", "public, max-age=86400")
             self.send_header("Content-Length", str(len(payload)))
             self.end_headers()
-            self.wfile.write(payload)
+            if self.command != "HEAD":
+                self.wfile.write(payload)
+        except (BrokenPipeError, ConnectionResetError):
+            return
         except (HTTPError, URLError, TimeoutError, OSError) as error:
             self.send_error(502, f"Museum image fetch failed: {error}")
 
@@ -528,16 +610,42 @@ class Handler(SimpleHTTPRequestHandler):
         print(f"{self.log_date_time_string()} {format % args}")
 
 
-if __name__ == "__main__":
-    # A user can still launch with `python3 server.py`: switch to this
-    # project's installed TV environment before accepting requests.
-    project_python = ROOT / ".venv" / "bin" / "python"
-    if sys.prefix == sys.base_prefix and project_python.is_file():
-        os.execv(str(project_python), [str(project_python), str(ROOT / "server.py"), *sys.argv[1:]])
-    server = ThreadingHTTPServer(("127.0.0.1", 8000), Handler)
-    print("Stillroom is available at http://127.0.0.1:8000 — press Ctrl+C to stop.")
+def main():
+    parser = argparse.ArgumentParser(description="Stillroom local server with optional password-free home-network access.")
+    parser.add_argument("--port", type=int, default=8000, help="Server port (default: 8000)")
+    parser.add_argument("--lan", action="store_true", help="Allow devices on your home network; no password required")
+    parser.add_argument("--bind", help="Your computer's private IPv4 address; requires --lan")
+    args = parser.parse_args()
+    if not 1 <= args.port <= 65535:
+        parser.error("Port must be between 1 and 65535.")
+    if args.bind and not args.lan:
+        parser.error("--bind requires --lan.")
+    origin = None
+    address = "127.0.0.1"
+    if args.lan:
+        if not args.bind:
+            parser.error("Specify your home-network address: --lan --bind 192.168.1.20")
+        try:
+            origin = normalize_origin(f"http://{args.bind}:{args.port}")
+        except ValueError as error:
+            parser.error(str(error))
+        address = urlparse(origin).hostname
+    server = ThreadingHTTPServer((address, args.port), Handler)
+    server.lan_origin = origin
+    print(f"Stillroom is available at {origin or f'http://127.0.0.1:{args.port}'} — press Ctrl+C to stop.")
+    if origin:
+        print("Home-network access is enabled without a password. Keep router port forwarding disabled.")
     try:
         server.serve_forever()
     except KeyboardInterrupt:
         print("\nStillroom server stopped.")
+    finally:
         server.server_close()
+
+
+if __name__ == "__main__":
+    # Switch environments only for a direct launch, never when imported by tests.
+    project_python = ROOT / ".venv" / "bin" / "python"
+    if sys.prefix == sys.base_prefix and project_python.is_file():
+        os.execv(str(project_python), [str(project_python), str(ROOT / "server.py"), *sys.argv[1:]])
+    main()

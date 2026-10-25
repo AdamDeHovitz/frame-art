@@ -64,9 +64,39 @@ Direct transfer uses a community-maintained Art Mode connection over the local n
 
 The TV may add a mat or scale images according to its Art Mode settings. The preview frame finish does not control the physical bezel or the TV's mat setting.
 
+## Open Stillroom from other devices at home
+
+Normal use is unchanged: `python3 server.py` listens only on localhost and needs no password.
+
+To enable password-free access from your home network, find the hosting computer's private IPv4 address in its network settings, then run:
+
+```sh
+python3 server.py --lan --bind 192.168.1.20
+```
+
+Replace `192.168.1.20` with your computer's address. Open **http://192.168.1.20:8000** on your phone or another device connected to the same home network. There is no login, certificate installation, Caddy process, or cloud account. Use `--port 8001` if port 8000 is already occupied, and include that port in the browser URL.
+
+The server binds only to the selected address. Keep the host computer awake and the terminal running. On macOS, allow Python incoming connections through Firewall if prompted. Guest Wi-Fi may isolate devices and prevent connections. Press **Ctrl+C** to stop sharing.
+
+Anyone who can reach the app can browse art and use its TV controls, including deleting TV photos. HTTP traffic is not encrypted by the app. This simple mode relies on your home network for access control; do not forward the port to the internet. Browser Host/Origin checks still block unrelated websites from issuing TV commands, and private project files remain inaccessible.
+
+A **DHCP reservation** in your router keeps the computer's address stable for bookmarks. Reserving the TV's address also helps preserve pairing. Address reservations do not open ports or make the app public. Without a reservation, update the command and bookmark if the address changes.
+
+Favorites, crops, and imported images remain separate in each browser. All devices use the same server-side TV pairing.
+
+Run the network regression checks with:
+
+```sh
+python3 -m unittest -v test_lan_security.py
+```
+
+The tests mock TV commands and do not change artwork on a real TV.
+
 ## Privacy and publishing
 
-Stillroom runs at `127.0.0.1:8000` on your computer. It stores the TV address and pairing tokens locally in `work/tv/` with owner-only file permissions. Artwork JPEGs are generated in the browser and sent to the local server only for TV transfer. Favorites and crop choices stay in your browser's local storage.
+Stillroom runs at `127.0.0.1:8000` on your computer by default. Optional LAN access uses the password-free setup above. It stores the TV address and pairing tokens locally in `work/tv/` with owner-only file permissions. Artwork JPEGs are generated in the browser and sent to the local server only for TV transfer. Favorites and crop choices stay in your browser's local storage.
+
+Fonts are bundled locally with their SIL Open Font Licenses in `fonts/`; opening the app does not contact Google Fonts. Museum browsing still contacts external art services, which can see the hosting computer's public IP and the searches/images requested. This app is locally hosted, not fully offline.
 
 The project's `.gitignore` excludes `work/`, `.venv/`, generated files, and local exports. Publish the Git-tracked source files; do not upload the entire folder through a website or force-add ignored files. If a token was ever committed to another repository, remove it from that repository's history and re-pair the TV before publishing.
 
@@ -85,4 +115,7 @@ Stillroom filters for flat art such as paintings, drawings, prints, and posters,
 - `app.js` — browsing, preview, crop, favorites, and export
 - `collections.json` — curated seasonal sets
 - `server.py` — local server and museum image relay
+- `lan_security.py` and `network.js` — LAN address validation and browser request checks
+- `fonts/` — locally served typefaces and their licenses
+- `test_lan_security.py` — LAN access and request-boundary regression tests
 - `tv_transfer.py` and `requirements-tv.txt` — optional TV pairing and transfer
