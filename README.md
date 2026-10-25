@@ -35,6 +35,10 @@ If you only want to browse and download art, skip the installation commands and 
 3. Pick a **Preview frame** finish if you like. It only changes the on-screen preview; it is never added to the image sent to the TV.
 4. Choose **Download TV-ready artwork**, or pair your TV and choose **Send to Frame TV**. Landscape images export at 3840 × 2160; portrait images export at 2160 × 3840.
 
+## Enlarge the frame preview
+
+After selecting artwork, choose **Enlarge preview** beside the preview heading. The artwork fills the available space, with the same frame, orientation, and crop controls alongside it (below it on a phone). Changes carry back to your composition. Choose **Close** or press **Escape** to return. The browser stays in its normal window so navigation and device controls remain available.
+
 ## Use an image from your computer or phone
 
 Choose **Upload your own image** above the frame preview and select a JPEG or PNG up to 30 MB. The image opens in the existing preview: adjust landscape or portrait orientation, position the crop, and choose **Download TV-ready artwork** or **Send to Frame TV**. Transparent areas in PNG images export on white.

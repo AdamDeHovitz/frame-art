@@ -52,6 +52,7 @@ async function importImage(file){
 function setStatus(text){statusEl.textContent=text}
 function setTvStatus(message,error=false){const el=document.querySelector('#tvStatus');el.textContent=message;el.classList.toggle('error',error)}
 function syncTvButton(){
+  document.querySelector('#enlargePreviewBtn').disabled=!art.image;
   const ready=tv.paired&&tv.available&&!tv.busy&&!tvLibrary.loading&&document.querySelector('#tvIp').value.trim()===tv.ip;
   document.querySelector('#sendBtn').disabled=!art.image||!ready;
   document.querySelector('#sendCollectionBtn').disabled=!ready||!activeCollection||activeCollection.works.length<2;
@@ -193,8 +194,10 @@ function cropRect(image,W,H,x,y,zoom){
 
 function drawPreview(){
   if(!art.image)return;
-  const portrait=art.orientation==='portrait';const W=portrait?540:960,H=portrait?960:540;
+  const portrait=art.orientation==='portrait';const large=document.querySelector('#previewDialog').open;
+  const W=(portrait?540:960)*(large?2:1),H=(portrait?960:540)*(large?2:1);
   canvas.width=W;canvas.height=H;frame.style.aspectRatio=portrait?'9/16':'16/9';
+  if(large)fitEnlargedPreview();
   const crop=cropRect(art.image,W,H,art.x,art.y,art.zoom);
   const xControl=document.querySelector('#posX'),yControl=document.querySelector('#posY');
   const canMoveX=art.image.width-crop.sw>0.5,canMoveY=art.image.height-crop.sh>0.5;
@@ -463,6 +466,48 @@ async function stopCollectionSlideshow(){
   finally{button.disabled=false}
 }
 
+// Move the existing preview and controls so both views share one composition.
+const previewDialog=document.querySelector('#previewDialog');
+const previewStage=document.querySelector('#previewDialogStage');
+const previewControls=document.querySelector('#previewDialogControls');
+const previewParts=['.preview-wrap','.bezel-choice','.controls'].map(selector=>{
+  const node=document.querySelector(selector),placeholder=document.createComment('preview home');
+  node.before(placeholder);
+  return {node,placeholder};
+});
+function fitEnlargedPreview(){
+  if(!previewDialog.open)return;
+  const bezel=document.querySelector('#tvBezel');
+  const style=getComputedStyle(bezel);
+  const horizontal=parseFloat(style.paddingLeft)+parseFloat(style.paddingRight);
+  const vertical=parseFloat(style.paddingTop)+parseFloat(style.paddingBottom);
+  const stageStyle=getComputedStyle(previewParts[0].node);
+  const width=previewStage.clientWidth-parseFloat(stageStyle.paddingLeft)-parseFloat(stageStyle.paddingRight);
+  const height=previewStage.clientHeight-parseFloat(stageStyle.paddingTop)-parseFloat(stageStyle.paddingBottom);
+  const ratio=art.orientation==='portrait'?9/16:16/9;
+  bezel.style.width=`${Math.max(0,Math.min(width,(height-vertical)*ratio+horizontal))}px`;
+}
+function enlargePreview(){
+  if(!art.image||previewDialog.open)return;
+  document.querySelector('#previewDialogArtwork').textContent=art.selected?.title||'Your artwork';
+  previewStage.append(previewParts[0].node);
+  previewControls.append(previewParts[1].node,previewParts[2].node);
+  previewDialog.showModal();
+  document.documentElement.classList.add('preview-dialog-open');
+  drawPreview();
+}
+function restorePreview(){
+  for(const {node,placeholder} of previewParts)placeholder.after(node);
+  document.querySelector('#tvBezel').style.removeProperty('width');
+  document.documentElement.classList.remove('preview-dialog-open');
+  drawPreview();
+  document.querySelector('#enlargePreviewBtn').focus({preventScroll:true});
+}
+document.querySelector('#enlargePreviewBtn').addEventListener('click',enlargePreview);
+document.querySelector('#closePreviewBtn').addEventListener('click',()=>previewDialog.close());
+previewDialog.addEventListener('close',restorePreview);
+new ResizeObserver(fitEnlargedPreview).observe(previewStage);
+
 document.querySelector('#importImageFile').addEventListener('change',event=>{const file=event.target.files[0];event.target.value='';importImage(file)});
 document.querySelector('#searchForm').addEventListener('submit',e=>{e.preventDefault();art.query=document.querySelector('#searchInput').value.trim();document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));search()});
 document.querySelector('#sourceFilter').addEventListener('change',()=>{
@@ -491,7 +536,7 @@ document.querySelector('#sendCollectionBtn').addEventListener('click',sendCollec
 document.querySelector('#stopSlideshowBtn').addEventListener('click',stopCollectionSlideshow);
 const savedBezel=localStorage.getItem('stillroom-bezel-v1');
 if(['black','white','teak','brown','sand-gold'].includes(savedBezel))document.querySelector('#bezelSelect').value=savedBezel;
-function updateBezel(){const value=document.querySelector('#bezelSelect').value;document.querySelector('#tvBezel').className=`tv-bezel bezel-${value}`;localStorage.setItem('stillroom-bezel-v1',value)}
+function updateBezel(){const value=document.querySelector('#bezelSelect').value;document.querySelector('#tvBezel').className=`tv-bezel bezel-${value}`;localStorage.setItem('stillroom-bezel-v1',value);fitEnlargedPreview()}
 document.querySelector('#bezelSelect').addEventListener('change',updateBezel);updateBezel();
 document.querySelector('#tvIp').addEventListener('input',()=>{
   const matches=document.querySelector('#tvIp').value.trim()===tv.ip;

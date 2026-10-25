@@ -70,3 +70,23 @@
 #helpDialog{width:min(520px,calc(100vw - 28px));max-width:none;max-height:85vh;overflow-y:auto}
 #helpDialog .dialog-note a{color:#59604a;font-weight:600}
 .image-import{margin-top:16px}.image-import-picker{position:relative;display:inline-block;overflow:hidden;border:1px solid #abb09f;background:transparent;color:#59604a;padding:10px 13px;font:600 11px var(--sans);cursor:pointer}.image-import-picker input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}.image-import-picker:focus-within{outline:2px solid #59604a;outline-offset:3px}.image-import p{font-size:10px;line-height:1.5;color:#85857b;margin:7px 0 0}.image-import p.error{color:#aa5546}
+
+/* An enlarged composition keeps familiar crop controls beside the artwork. */
+.enlarge-preview-button,.preview-close-button{display:flex;align-items:center;justify-content:center;gap:8px;min-height:44px;border:1px solid var(--line);background:transparent;color:var(--olive);padding:8px 12px;font:600 11px var(--sans);cursor:pointer}
+.enlarge-preview-button{margin-left:12px}.enlarge-preview-button span{font-size:20px}.enlarge-preview-button:disabled{opacity:.45;cursor:not-allowed}
+.enlarge-preview-button:focus-visible,.preview-close-button:focus-visible{outline:2px solid var(--olive);outline-offset:3px}
+.preview-dialog-open{overflow:hidden}
+.preview-dialog{width:calc(100vw - 32px);height:calc(100vh - 32px);height:calc(100dvh - 32px);max-width:none;max-height:none;padding:24px;margin:auto;background:var(--white)}
+.preview-dialog[open]{display:grid;grid-template-rows:auto minmax(0,1fr);gap:20px}
+.preview-dialog::backdrop{background:#20221ee6}
+.preview-dialog-heading{display:flex;align-items:center;justify-content:space-between;gap:16px;min-width:0}
+.preview-dialog-heading h2{font:500 23px var(--serif);margin:0 0 5px}.preview-dialog-heading p{font-size:12px;color:var(--muted);margin:0;overflow-wrap:anywhere}
+.preview-close-button{flex-shrink:0}.preview-close-button span{font-size:22px}
+.preview-dialog-body{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:24px;min-height:0}
+.preview-dialog-stage{min-width:0;min-height:0;background:#edeae1}
+.preview-dialog-stage .preview-wrap{width:100%;height:100%;min-height:0;margin:0;padding:24px}
+.preview-dialog-controls{overflow-y:auto;min-height:0;padding:0 2px}
+.preview-dialog-controls>p{margin:0 0 20px;color:var(--muted);font-size:12px;line-height:1.6}
+.preview-dialog-controls .bezel-choice{margin-top:0}.preview-dialog-controls .controls{padding-top:24px}
+.preview-dialog-controls .muted{max-width:140px;text-align:right}
+@media(max-width:700px){.preview-dialog{width:100vw;height:100vh;height:100dvh;padding:16px}.preview-dialog[open]{gap:16px}.preview-dialog-heading h2{font-size:21px}.preview-dialog-body{display:flex;flex-direction:column;gap:16px;overflow-y:auto}.preview-dialog-stage{flex:0 0 50vh;flex-basis:50dvh;min-height:220px}.preview-dialog-stage .preview-wrap{padding:16px}.preview-dialog-controls{overflow:visible;flex-shrink:0}.preview-dialog-controls>p{margin-bottom:16px}.preview-dialog-controls .controls{padding-top:16px}.preview-dialog-controls .muted{max-width:none}.studio-head{align-items:center}.enlarge-preview-button{font-size:10px;padding:6px 9px}}
