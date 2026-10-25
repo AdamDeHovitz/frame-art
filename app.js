@@ -9,11 +9,46 @@ const tv = { paired: false, available: false, ip: null, busy: false };
 const tvLibrary = { page: 0, hasMore: false, loading: false, items: [], selected: new Set() };
 let collections=[];
 let activeCollection=null;
+const importedWorks=[];
+const importedCrops={};
+let importRequest=0;
 const RESULTS_PER_BATCH = 24;
 const imgSrc = (item, size='web') => {
+  if(item?.source==='local')return item.localUrl;
   const source=item?.images?.[size]?.url;
   return source ? `/image?src=${encodeURIComponent(source)}` : '';
 };
+async function importImage(file){
+  if(!file)return;
+  const request=++importRequest;
+  const status=document.querySelector('#importImageStatus');
+  const report=(message,error=false)=>{status.textContent=message;status.classList.toggle('error',error)};
+  let url;
+  try{
+    if(file.size>30*1024*1024)throw new Error('Choose an image smaller than 30 MB.');
+    const header=new Uint8Array(await file.slice(0,8).arrayBuffer());
+    const jpeg=header[0]===0xff&&header[1]===0xd8&&header[2]===0xff;
+    const png=[137,80,78,71,13,10,26,10].every((byte,index)=>header[index]===byte);
+    if(!jpeg&&!png)throw new Error('Choose a JPEG or PNG image. HEIC and other formats must be converted first.');
+    if(request!==importRequest)return;
+    report('Opening your image…');
+    url=URL.createObjectURL(file);
+    let image;
+    try{image=await loadImage(url)}catch{throw new Error('This image could not be opened. Try another JPEG or PNG.');}
+    if(request!==importRequest){URL.revokeObjectURL(url);return}
+    if(!image.width||!image.height)throw new Error('This image has no usable dimensions.');
+    const item={id:`local-${Date.now()}-${request}`,source:'local',localUrl:url,
+      title:file.name.replace(/\.[^.]+$/,'')||'Your image',artistDisplayName:'Your image'};
+    importedWorks.push(item);
+    chooseCollection('imports',false);
+    select(item,grid.lastElementChild);
+    report(`${file.name} · ${image.width} × ${image.height}. Available until this page is refreshed.`);
+    url=null; // Keep the URL alive for this session's imported collection.
+  }catch(error){
+    if(url)URL.revokeObjectURL(url);
+    if(request===importRequest)report(error.message,true);
+  }
+}
 function setStatus(text){statusEl.textContent=text}
 function setTvStatus(message,error=false){const el=document.querySelector('#tvStatus');el.textContent=message;el.classList.toggle('error',error)}
 function syncTvButton(){
@@ -125,14 +160,14 @@ function drawGrid(items){
 async function select(item,button){
   document.querySelectorAll('.art-card').forEach(n=>n.classList.toggle('selected',n===button));
   const selectionId=++art.selectionId;
-  const savedCrop=art.crops[item.id]||{};
-  art.selected=item;art.image=null;art.x=savedCrop.x??50;art.y=savedCrop.y??50;art.zoom=savedCrop.zoom??(activeCollection?104:100);
+  const savedCrop=(item.source==='local'?importedCrops[item.id]:art.crops[item.id])||{};
+  art.selected=item;art.image=null;art.x=savedCrop.x??50;art.y=savedCrop.y??50;art.zoom=savedCrop.zoom??(activeCollection&&item.source!=='local'?104:100);
   document.querySelector('#posX').value=art.x;document.querySelector('#posY').value=art.y;
   document.querySelector('#zoom').value=art.zoom;document.querySelector('#zoomValue').textContent=`${art.zoom}%`;document.querySelector('#emptyPreview').hidden=true;
   document.querySelector('#selectedTitle').textContent=item.title || 'Untitled';
   const attribution=document.querySelector('#selectedArtist');
-  attribution.textContent=[item.artistDisplayName,item.objectDate].filter(Boolean).join(' · ')+' · ';
-  const source=document.createElement('a');source.href=item.objectURL;source.target='_blank';source.rel='noreferrer';source.textContent=item.museum;source.style.color='inherit';attribution.append(source);
+  attribution.textContent=[item.artistDisplayName,item.objectDate].filter(Boolean).join(' · ');
+  if(item.objectURL){attribution.append(' · ');const source=document.createElement('a');source.href=item.objectURL;source.target='_blank';source.rel='noreferrer';source.textContent=item.museum;source.style.color='inherit';attribution.append(source)}
   document.querySelector('#downloadBtn').disabled=true;document.querySelector('#saveButton').disabled=false;syncSaveButton();syncTvButton();
   setStatus('');
   const image=new Image();image.crossOrigin='anonymous';
@@ -169,6 +204,7 @@ function drawPreview(){
   xControl.parentElement.classList.toggle('inactive-crop',!canMoveX);
   yControl.parentElement.classList.toggle('inactive-crop',!canMoveY);
   ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#fff';ctx.fillRect(0,0,W,H);
   ctx.drawImage(art.image,crop.sx,crop.sy,crop.sw,crop.sh,0,0,W,H);
 }
 
@@ -191,6 +227,7 @@ async function exportBlob(){
   }
   const out=document.createElement('canvas');out.width=orientation==='portrait'?2160:3840;out.height=orientation==='portrait'?3840:2160;
   const outCtx=out.getContext('2d'),crop=cropRect(exportImage,out.width,out.height,x,y,zoom);
+  outCtx.fillStyle='#fff';outCtx.fillRect(0,0,out.width,out.height);
   outCtx.drawImage(exportImage,crop.sx,crop.sy,crop.sw,crop.sh,0,0,out.width,out.height);
   const blob=await new Promise(resolve=>out.toBlob(resolve,'image/jpeg',.94));
   if(!blob)throw new Error('This image could not be exported. Try another work.');
@@ -326,11 +363,11 @@ async function sendToTv(){
 }
 
 function isSaved(id){return art.saved.some(x=>x.id===id)}
-function syncSaveButton(){const b=document.querySelector('#saveButton');b.textContent=isSaved(art.selected?.id)?'♥':'♡';b.classList.toggle('saved',isSaved(art.selected?.id))}
-function saveSelected(){if(!art.selected)return;if(isSaved(art.selected.id))art.saved=art.saved.filter(x=>x.id!==art.selected.id);else art.saved.unshift(art.selected);localStorage.setItem('stillroom-saved-v2',JSON.stringify(art.saved));renderSavedCount();syncSaveButton();renderCollections();if(activeCollection?.id==='saved')chooseCollection('saved')}
-function saveCrop(){if(!art.selected)return;art.crops[art.selected.id]={x:art.x,y:art.y,zoom:art.zoom};localStorage.setItem('stillroom-crops-v1',JSON.stringify(art.crops))}
+function syncSaveButton(){const b=document.querySelector('#saveButton');b.textContent=isSaved(art.selected?.id)?'♥':'♡';b.classList.toggle('saved',isSaved(art.selected?.id));b.disabled=!art.selected||art.selected.source==='local';b.title=art.selected?.source==='local'?'Imported images are available in this tab until the page is refreshed.':'Save artwork'}
+function saveSelected(){if(!art.selected||art.selected.source==='local')return;if(isSaved(art.selected.id))art.saved=art.saved.filter(x=>x.id!==art.selected.id);else art.saved.unshift(art.selected);localStorage.setItem('stillroom-saved-v2',JSON.stringify(art.saved));renderSavedCount();syncSaveButton();renderCollections();if(activeCollection?.id==='saved')chooseCollection('saved')}
+function saveCrop(){if(!art.selected)return;const crop={x:art.x,y:art.y,zoom:art.zoom};if(art.selected.source==='local'){importedCrops[art.selected.id]=crop;return}art.crops[art.selected.id]=crop;localStorage.setItem('stillroom-crops-v1',JSON.stringify(art.crops))}
 
-function allCollections(){return [...collections,{id:'saved',title:'Your saved works',description:'A personal set made from your saved artworks.',works:art.saved}]}
+function allCollections(){return [...collections,...(importedWorks.length?[{id:'imports',title:'Your uploaded images',description:'Images opened in this browser tab. Refreshing the page clears this collection. Download or send them to your TV to keep a copy.',works:importedWorks}]:[]),{id:'saved',title:'Your saved works',description:'A personal set made from your saved artworks.',works:art.saved}]}
 function renderCollections(){
   const container=document.querySelector('#collectionCards');container.innerHTML='';
   for(const collection of allCollections()){
@@ -350,7 +387,7 @@ async function loadCollections(){
     const data=await response.json();collections=data.collections||[];renderCollections();
   }catch{document.querySelector('#collectionCards').textContent='Curated collections could not load. Refresh the page.'}
 }
-function chooseCollection(id){
+function chooseCollection(id,scroll=true){
   const collection=allCollections().find(entry=>entry.id===id);if(!collection)return;
   activeCollection=collection;art.searchId++;art.loading=false;art.hasMore=false;art.items=collection.works.slice();
   art.orientation='landscape';document.querySelectorAll('.orientation').forEach(button=>button.classList.toggle('active',button.dataset.orientation==='landscape'));
@@ -361,10 +398,11 @@ function chooseCollection(id){
   document.querySelector('#collectionDescription').textContent=collection.description;
   document.querySelector('#collectionActions').hidden=false;
   document.querySelector('#loadMore').hidden=true;
-  document.querySelector('#collectionStatus').textContent=collection.works.length<2?'Save at least two artworks to start a slideshow.':'';
-  setStatus(`${collection.works.length} curated ${collection.works.length===1?'work':'works'}`);
+  document.querySelector('#collectionStatus').textContent=collection.works.length<2?(id==='imports'?'Upload at least two images to start a slideshow.':'Save at least two artworks to start a slideshow.'):'';
+  document.querySelector('.collection-note').textContent=id==='imports'?'Each image uses its landscape crop. Stillroom rotates this set while the server is running.':'Each work is cropped to 16:9 with a small edge trim. Stillroom rotates this exact set while the server is running.';
+  setStatus(`${collection.works.length} ${id==='imports'?'uploaded':'curated'} ${collection.works.length===1?'work':'works'}`);
   renderCollections();syncTvButton();
-  document.querySelector('.gallery-panel').scrollIntoView({behavior:'smooth',block:'start'});
+  if(scroll)document.querySelector('.gallery-panel').scrollIntoView({behavior:'smooth',block:'start'});
 }
 function setCollectionStatus(message,error=false){const el=document.querySelector('#collectionStatus');el.textContent=message;el.classList.toggle('error',error)}
 async function exportCollectionItem(item){
@@ -372,8 +410,9 @@ async function exportCollectionItem(item){
   try{image=await loadImage(imgSrc(item,'print'))}
   catch{image=await loadImage(imgSrc(item,'web'))}
   const out=document.createElement('canvas');out.width=3840;out.height=2160;
-  const crop=art.crops[item.id]||{x:50,y:50,zoom:104};
+  const crop=(item.source==='local'?importedCrops[item.id]:art.crops[item.id])||{x:50,y:50,zoom:item.source==='local'?100:104};
   const rect=cropRect(image,3840,2160,crop.x,crop.y,crop.zoom);
+  out.getContext('2d').fillStyle='#fff';out.getContext('2d').fillRect(0,0,out.width,out.height);
   out.getContext('2d').drawImage(image,rect.sx,rect.sy,rect.sw,rect.sh,0,0,3840,2160);
   const blob=await new Promise(resolve=>out.toBlob(resolve,'image/jpeg',.94));
   if(!blob)throw new Error('The artwork could not be exported.');
@@ -424,6 +463,8 @@ async function stopCollectionSlideshow(){
   finally{button.disabled=false}
 }
 
+document.querySelector('#importImageBtn').addEventListener('click',()=>document.querySelector('#importImageFile').click());
+document.querySelector('#importImageFile').addEventListener('change',event=>{const file=event.target.files[0];event.target.value='';importImage(file)});
 document.querySelector('#searchForm').addEventListener('submit',e=>{e.preventDefault();art.query=document.querySelector('#searchInput').value.trim();document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));search()});
 document.querySelector('#sourceFilter').addEventListener('change',()=>{
   redrawGrid();

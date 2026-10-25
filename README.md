@@ -35,6 +35,12 @@ If you only want to browse and download art, skip the installation commands and 
 3. Pick a **Preview frame** finish if you like. It only changes the on-screen preview; it is never added to the image sent to the TV.
 4. Choose **Download TV-ready artwork**, or pair your TV and choose **Send to Frame TV**. Landscape images export at 3840 × 2160; portrait images export at 2160 × 3840.
 
+## Use an image from your computer or phone
+
+Choose **Upload your own image** above the frame preview and select a JPEG or PNG up to 30 MB. The image opens in the existing preview: adjust landscape or portrait orientation, position the crop, and choose **Download TV-ready artwork** or **Send to Frame TV**. Transparent areas in PNG images export on white.
+
+Your images appear under **Your uploaded images** for the current browser tab. You can return to them, adjust their crops, or send multiple imported images as a slideshow. They stay in browser memory and are cleared when the page is refreshed or closed; they are not added to saved favorites. The original file stays on your device. Only sending to the TV transfers the exported JPEG to the local server. Images already uploaded to the TV remain in its My Photos library after you close Stillroom.
+
 ## Pair your Frame TV
 
 Your TV and computer must be on the same home network. Turn on the TV before pairing.
