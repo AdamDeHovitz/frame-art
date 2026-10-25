@@ -166,6 +166,7 @@ async function select(item,button){
   document.querySelector('#posX').value=art.x;document.querySelector('#posY').value=art.y;
   document.querySelector('#zoom').value=art.zoom;document.querySelector('#zoomValue').textContent=`${art.zoom}%`;document.querySelector('#emptyPreview').hidden=true;
   document.querySelector('#selectedTitle').textContent=item.title || 'Untitled';
+  document.querySelector('#previewDialogArtwork').textContent=item.title || 'Untitled';
   const attribution=document.querySelector('#selectedArtist');
   attribution.textContent=[item.artistDisplayName,item.objectDate].filter(Boolean).join(' · ');
   if(item.objectURL){attribution.append(' · ');const source=document.createElement('a');source.href=item.objectURL;source.target='_blank';source.rel='noreferrer';source.textContent=item.museum;source.style.color='inherit';attribution.append(source)}
@@ -470,10 +471,15 @@ async function stopCollectionSlideshow(){
 const previewDialog=document.querySelector('#previewDialog');
 const previewStage=document.querySelector('#previewDialogStage');
 const previewControls=document.querySelector('#previewDialogControls');
-const previewParts=['.preview-wrap','.bezel-choice','.controls'].map(selector=>{
+const previewWrap=document.querySelector('.preview-wrap');
+const previewParts=[
+  {selector:'.preview-wrap',target:previewStage},
+  {selector:'.image-import',target:previewControls},
+  {selector:'.composition-tools',target:previewControls},
+].map(({selector,target})=>{
   const node=document.querySelector(selector),placeholder=document.createComment('preview home');
   node.before(placeholder);
-  return {node,placeholder};
+  return {node,placeholder,target};
 });
 function fitEnlargedPreview(){
   if(!previewDialog.open)return;
@@ -481,7 +487,7 @@ function fitEnlargedPreview(){
   const style=getComputedStyle(bezel);
   const horizontal=parseFloat(style.paddingLeft)+parseFloat(style.paddingRight);
   const vertical=parseFloat(style.paddingTop)+parseFloat(style.paddingBottom);
-  const stageStyle=getComputedStyle(previewParts[0].node);
+  const stageStyle=getComputedStyle(previewWrap);
   const width=previewStage.clientWidth-parseFloat(stageStyle.paddingLeft)-parseFloat(stageStyle.paddingRight);
   const height=previewStage.clientHeight-parseFloat(stageStyle.paddingTop)-parseFloat(stageStyle.paddingBottom);
   const ratio=art.orientation==='portrait'?9/16:16/9;
@@ -490,8 +496,7 @@ function fitEnlargedPreview(){
 function enlargePreview(){
   if(!art.image||previewDialog.open)return;
   document.querySelector('#previewDialogArtwork').textContent=art.selected?.title||'Your artwork';
-  previewStage.append(previewParts[0].node);
-  previewControls.append(previewParts[1].node,previewParts[2].node);
+  for(const {node,target} of previewParts)target.append(node);
   previewDialog.showModal();
   document.documentElement.classList.add('preview-dialog-open');
   drawPreview();

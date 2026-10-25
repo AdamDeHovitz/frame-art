@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#f5f2eb" />
   <title>Stillroom — art for your Frame</title>
-  <link rel="stylesheet" href="styles.css?v=enlarged-preview-1" />
+  <link rel="stylesheet" href="styles.css?v=enlarged-preview-2" />
 </head>
 <body>
   <header class="topbar">
@@ -65,19 +65,21 @@
         <div class="preview-wrap">
           <div id="tvBezel" class="tv-bezel bezel-black"><div class="preview-mat"><canvas id="preview" width="960" height="540" aria-label="Cropped artwork preview"></canvas><div class="empty-preview" id="emptyPreview"><span>✳</span><b>Your next favorite<br />starts here.</b><small>Select a work to compose it</small></div></div></div>
         </div>
-        <div class="bezel-choice"><label for="bezelSelect">Preview frame</label><select id="bezelSelect" aria-label="Preview frame color"><option value="black">Classic black</option><option value="white">White</option><option value="teak">Teak</option><option value="brown">Brown</option><option value="sand-gold">Sand Gold</option></select><small>Preview only · artwork stays border-free</small></div>
-        <div class="selected-meta"><div><h3 id="selectedTitle">Choose a painting</h3><p id="selectedArtist">Your preview will appear here.</p></div><button id="saveButton" class="heart-button" aria-label="Save artwork" disabled>♡</button></div>
-        <div class="controls">
-          <div class="control-heading"><span>Screen orientation</span><span class="muted">Choose how your TV is mounted</span></div>
-          <div class="segmented"><button class="orientation active" data-orientation="landscape">Landscape <small>16:9</small></button><button class="orientation" data-orientation="portrait">Portrait <small>9:16</small></button></div>
-          <div class="control-heading crop-heading"><span>Adjust crop</span><span class="muted">Drag image to reposition</span></div>
-          <div class="position-controls"><label>Horizontal <input id="posX" type="range" min="0" max="100" value="50" /></label><label>Vertical <input id="posY" type="range" min="0" max="100" value="50" /></label></div>
-          <label class="zoom-control"><span>Trim artwork edges <small id="zoomValue">100%</small></span><input id="zoom" type="range" min="100" max="120" step="1" value="100" aria-label="Zoom in to trim artwork edges" /></label>
+        <div class="composition-tools">
+          <div class="bezel-choice"><label for="bezelSelect">Preview frame</label><select id="bezelSelect" aria-label="Preview frame color"><option value="black">Classic black</option><option value="white">White</option><option value="teak">Teak</option><option value="brown">Brown</option><option value="sand-gold">Sand Gold</option></select><small>Preview only · artwork stays border-free</small></div>
+          <div class="selected-meta"><div><h3 id="selectedTitle">Choose a painting</h3><p id="selectedArtist">Your preview will appear here.</p></div><button id="saveButton" class="heart-button" aria-label="Save artwork" disabled>♡</button></div>
+          <div class="controls">
+            <div class="control-heading"><span>Screen orientation</span><span class="muted">Choose how your TV is mounted</span></div>
+            <div class="segmented"><button class="orientation active" data-orientation="landscape">Landscape <small>16:9</small></button><button class="orientation" data-orientation="portrait">Portrait <small>9:16</small></button></div>
+            <div class="control-heading crop-heading"><span>Adjust crop</span><span class="muted">Drag image to reposition</span></div>
+            <div class="position-controls"><label>Horizontal <input id="posX" type="range" min="0" max="100" value="50" /></label><label>Vertical <input id="posY" type="range" min="0" max="100" value="50" /></label></div>
+            <label class="zoom-control"><span>Trim artwork edges <small id="zoomValue">100%</small></span><input id="zoom" type="range" min="100" max="120" step="1" value="100" aria-label="Zoom in to trim artwork edges" /></label>
+          </div>
+          <div class="tv-connect"><div class="tv-connect-heading"><b>Connect your Frame TV</b><button id="transferHelp" class="inline-link" type="button">Find your TV’s IP ↗</button></div><p>Keep the TV and this computer on the same home network. Enter the TV’s IP address below.</p><div class="tv-connect-row"><input id="tvIp" type="text" inputmode="decimal" autocomplete="off" placeholder="192.168.1.50" aria-label="Frame TV IP address" /><button id="pairBtn" type="button">Pair TV</button></div><p id="tvStatus" class="tv-status" role="status">Checking TV connection…</p></div>
+          <button id="sendBtn" class="export-button send-button" disabled><span>Send to Frame TV</span><span>↗</span></button>
+          <button id="downloadBtn" class="export-button download-button" disabled><span>Download TV-ready artwork</span><span>↓</span></button>
+          <p class="fine-print">Exported at up to 3840 × 2160. Art Mode may add a mat depending on the image and TV settings.</p>
         </div>
-        <div class="tv-connect"><div class="tv-connect-heading"><b>Connect your Frame TV</b><button id="transferHelp" class="inline-link" type="button">Find your TV’s IP ↗</button></div><p>Keep the TV and this computer on the same home network. Enter the TV’s IP address below.</p><div class="tv-connect-row"><input id="tvIp" type="text" inputmode="decimal" autocomplete="off" placeholder="192.168.1.50" aria-label="Frame TV IP address" /><button id="pairBtn" type="button">Pair TV</button></div><p id="tvStatus" class="tv-status" role="status">Checking TV connection…</p></div>
-        <button id="sendBtn" class="export-button send-button" disabled><span>Send to Frame TV</span><span>↗</span></button>
-        <button id="downloadBtn" class="export-button download-button" disabled><span>Download TV-ready artwork</span><span>↓</span></button>
-        <p class="fine-print">Exported at up to 3840 × 2160. Art Mode may add a mat depending on the image and TV settings.</p>
       </aside>
     </section>
 
@@ -92,11 +94,11 @@
 
   <dialog id="previewDialog" class="preview-dialog" aria-labelledby="previewDialogTitle" aria-describedby="previewDialogHint">
     <header class="preview-dialog-heading"><div><h2 id="previewDialogTitle">Frame preview</h2><p id="previewDialogArtwork"></p></div><button id="closePreviewBtn" class="preview-close-button" type="button" autofocus>Close <span aria-hidden="true">×</span></button></header>
-    <div class="preview-dialog-body"><div id="previewDialogStage" class="preview-dialog-stage"></div><div id="previewDialogControls" class="preview-dialog-controls"><p id="previewDialogHint">Adjust the crop and frame here. Your changes carry back to the composition.</p></div></div>
+    <div class="preview-dialog-body"><div id="previewDialogStage" class="preview-dialog-stage"></div><div id="previewDialogControls" class="preview-dialog-controls"><p id="previewDialogHint">Compose, upload, download, or send artwork to your TV here. Your changes carry back to the composition.</p></div></div>
   </dialog>
   <dialog id="helpDialog"><button class="dialog-close" id="closeDialog" aria-label="Close">×</button><p class="eyebrow">Connect to your Frame</p><h2>Find your TV’s IP address</h2><ol><li>Turn on your TV. Keep it and this computer connected to the same home network.</li><li>On the TV remote, open <b>Settings → All Settings → Connection → Network → Network Status → IP Settings</b>. Find the number labeled <b>IP Address</b>. On older TVs, try <b>Settings → General → Network → Network Status → IP Settings</b>.</li><li>Type that number in Stillroom’s TV address box. Use the numbers and dots only, then select <b>Pair TV</b>.</li><li>Look at the TV and accept the <b>Stillroom</b> connection request. Once paired, choose a work and select <b>Send to Frame TV</b>.</li></ol><p class="dialog-note">If pairing fails, check that the address belongs to the TV, the TV is awake, and neither device is on an isolated guest network. Menus can vary by model. <a href="https://www.samsung.com/ca/support/tv-audio-video/verify-network-status-on-your-samsung-tv/" target="_blank" rel="noopener noreferrer">Samsung’s network guide ↗</a><br />Direct transfer depends on the TV’s Art Mode support. You can always download the JPEG and add it with SmartThings or USB.</p></dialog>
   <dialog id="deleteTvDialog"><p class="eyebrow">Remove from My Photos</p><h2>Delete these TV photos?</h2><p id="deleteTvDialogCopy" class="delete-dialog-copy"></p><div class="delete-dialog-actions"><button id="cancelDeleteTv" type="button">Cancel</button><button id="confirmDeleteTv" type="button">Delete from TV</button></div></dialog>
   <footer><span>stillroom <span class="footer-dot">·</span> A quiet corner for good art</span><a id="openAccessLink" href="https://www.si.edu/openaccess/faq" target="_blank" rel="noreferrer">About Open Access ↗</a></footer>
-  <script src="app.js?v=enlarged-preview-1"></script>
+  <script src="app.js?v=enlarged-preview-2"></script>
 </body>
 </html>

@@ -37,7 +37,7 @@ If you only want to browse and download art, skip the installation commands and 
 
 ## Enlarge the frame preview
 
-After selecting artwork, choose **Enlarge preview** beside the preview heading. The artwork fills the available space, with the same frame, orientation, and crop controls alongside it (below it on a phone). Changes carry back to your composition. Choose **Close** or press **Escape** to return. The browser stays in its normal window so navigation and device controls remain available.
+After selecting artwork, choose **Enlarge preview** beside the preview heading. The artwork fills the available space, with the same upload, frame, crop, save, TV pairing, send, and download controls alongside it (below it on a phone). You can finish the entire composition and transfer without leaving this view. Changes carry back to your composition. Choose **Close** or press **Escape** to return. The browser stays in its normal window so navigation and device controls remain available.
 
 ## Use an image from your computer or phone
 
