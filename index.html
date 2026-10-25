@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#f5f2eb" />
   <title>Stillroom — art for your Frame</title>
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="styles.css?v=image-import-2" />
 </head>
 <body>
   <header class="topbar">
@@ -61,7 +61,7 @@
 
       <aside class="studio-panel">
         <div class="studio-head"><div><p class="eyebrow">Your composition</p><h2>Frame preview</h2></div><span class="step-tag">01 / 02</span></div>
-        <div class="image-import"><button id="importImageBtn" type="button">Upload your own image</button><input id="importImageFile" type="file" accept="image/jpeg,image/png,.jpg,.jpeg,.png" hidden /><p id="importImageStatus" role="status">JPEG or PNG, up to 30 MB. Images stay in this browser until you send them to the TV.</p></div>
+        <div class="image-import"><label class="image-import-picker"><span>Upload your own image</span><input id="importImageFile" type="file" accept="image/jpeg,image/png,.jpg,.jpeg,.png" aria-label="Upload your own image" /></label><p id="importImageStatus" role="status">JPEG or PNG, up to 30 MB. Images stay in this browser until you send them to the TV.</p></div>
         <div class="preview-wrap">
           <div id="tvBezel" class="tv-bezel bezel-black"><div class="preview-mat"><canvas id="preview" width="960" height="540" aria-label="Cropped artwork preview"></canvas><div class="empty-preview" id="emptyPreview"><span>✳</span><b>Your next favorite<br />starts here.</b><small>Select a work to compose it</small></div></div></div>
         </div>
@@ -93,6 +93,6 @@
   <dialog id="helpDialog"><button class="dialog-close" id="closeDialog" aria-label="Close">×</button><p class="eyebrow">Connect to your Frame</p><h2>Find your TV’s IP address</h2><ol><li>Turn on your TV. Keep it and this computer connected to the same home network.</li><li>On the TV remote, open <b>Settings → All Settings → Connection → Network → Network Status → IP Settings</b>. Find the number labeled <b>IP Address</b>. On older TVs, try <b>Settings → General → Network → Network Status → IP Settings</b>.</li><li>Type that number in Stillroom’s TV address box. Use the numbers and dots only, then select <b>Pair TV</b>.</li><li>Look at the TV and accept the <b>Stillroom</b> connection request. Once paired, choose a work and select <b>Send to Frame TV</b>.</li></ol><p class="dialog-note">If pairing fails, check that the address belongs to the TV, the TV is awake, and neither device is on an isolated guest network. Menus can vary by model. <a href="https://www.samsung.com/ca/support/tv-audio-video/verify-network-status-on-your-samsung-tv/" target="_blank" rel="noopener noreferrer">Samsung’s network guide ↗</a><br />Direct transfer depends on the TV’s Art Mode support. You can always download the JPEG and add it with SmartThings or USB.</p></dialog>
   <dialog id="deleteTvDialog"><p class="eyebrow">Remove from My Photos</p><h2>Delete these TV photos?</h2><p id="deleteTvDialogCopy" class="delete-dialog-copy"></p><div class="delete-dialog-actions"><button id="cancelDeleteTv" type="button">Cancel</button><button id="confirmDeleteTv" type="button">Delete from TV</button></div></dialog>
   <footer><span>stillroom <span class="footer-dot">·</span> A quiet corner for good art</span><a id="openAccessLink" href="https://www.si.edu/openaccess/faq" target="_blank" rel="noreferrer">About Open Access ↗</a></footer>
-  <script src="app.js"></script>
+  <script src="app.js?v=image-import-2"></script>
 </body>
 </html>

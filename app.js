@@ -463,7 +463,6 @@ async function stopCollectionSlideshow(){
   finally{button.disabled=false}
 }
 
-document.querySelector('#importImageBtn').addEventListener('click',()=>document.querySelector('#importImageFile').click());
 document.querySelector('#importImageFile').addEventListener('change',event=>{const file=event.target.files[0];event.target.value='';importImage(file)});
 document.querySelector('#searchForm').addEventListener('submit',e=>{e.preventDefault();art.query=document.querySelector('#searchInput').value.trim();document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));search()});
 document.querySelector('#sourceFilter').addEventListener('change',()=>{
