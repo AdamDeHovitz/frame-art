@@ -35,6 +35,12 @@ If you only want to browse and download art, skip the installation commands and 
 3. Pick a **Preview frame** finish if you like. It only changes the on-screen preview; it is never added to the image sent to the TV.
 4. Choose **Download TV-ready artwork**, or pair your TV and choose **Send to Frame TV**. Landscape images export at 3840 × 2160; portrait images export at 2160 × 3840.
 
+## Use Stillroom on a phone or tablet
+
+On smaller screens, the gallery comes before the composition. Swipe through the curated collections or browse suggestions, then tap an artwork to jump to its preview. The **Browse art** and **Compose art** buttons at the bottom let you move between the gallery and editor. Choose **Compose art** to upload a photo from your phone.
+
+Drag the artwork to adjust its crop, or use the sliders. **Enlarge preview** opens a view that fits your screen, with all composition controls available by scrolling. The desktop workspace keeps the gallery and editor side by side.
+
 ## Enlarge the frame preview
 
 After selecting artwork, choose **Enlarge preview** beside the preview heading. The artwork fills the available space, with the same upload, frame, crop, save, TV pairing, send, and download controls alongside it (below it on a phone). You can finish the entire composition and transfer without leaving this view. Changes carry back to your composition. Choose **Close** or press **Escape** to return. The browser stays in its normal window so navigation and device controls remain available.

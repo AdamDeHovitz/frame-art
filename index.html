@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#f5f2eb" />
   <title>Stillroom — art for your Frame</title>
-  <link rel="stylesheet" href="styles.css?v=enlarged-preview-2" />
+  <link rel="stylesheet" href="styles.css?v=mobile-1" />
 </head>
 <body>
   <header class="topbar">
@@ -27,7 +27,7 @@
     </section>
 
     <section class="workspace" aria-label="Artwork explorer">
-      <div class="gallery-panel">
+      <div class="gallery-panel" id="gallery">
         <div class="section-heading">
           <div><p class="eyebrow">The collection</p><h2 id="collectionTitle">Open a window</h2></div>
           <button class="text-button" id="surpriseBtn">Surprise me <span>↗</span></button>
@@ -40,7 +40,7 @@
         </div>
         <div id="slideshowBanner" class="slideshow-banner" hidden><span id="slideshowBannerText"></span><button id="stopSlideshowBtn" type="button">Stop slideshow</button></div>
         <form id="searchForm" class="search-row">
-          <label class="search-box"><span>⌕</span><input id="searchInput" type="search" placeholder="Search paintings, artists, moods…" aria-label="Search artwork" /></label>
+          <label class="search-box"><span>⌕</span><input id="searchInput" type="search" placeholder="Search art or artists…" aria-label="Search artwork" /></label>
           <button class="dark-button" type="submit">Search</button>
         </form>
         <label class="source-picker">Filter by collection<select id="sourceFilter"><option value="all">All collections</option><option value="cleveland">Cleveland Museum of Art</option><option value="met">The Met</option><option value="rijks">Rijksmuseum</option><option value="commons">Wikimedia Commons</option></select></label>
@@ -59,7 +59,7 @@
         <p class="source-note">Searching all collections by default · Filter results by collection above</p>
       </div>
 
-      <aside class="studio-panel">
+      <aside class="studio-panel" id="composition">
         <div class="studio-head"><div><p class="eyebrow">Your composition</p><h2>Frame preview</h2></div><button id="enlargePreviewBtn" class="enlarge-preview-button" type="button" aria-haspopup="dialog" aria-controls="previewDialog" disabled>Enlarge preview <span aria-hidden="true">⤢</span></button></div>
         <div class="image-import"><label class="image-import-picker"><span>Upload your own image</span><input id="importImageFile" type="file" accept="image/jpeg,image/png,.jpg,.jpeg,.png" aria-label="Upload your own image" /></label><p id="importImageStatus" role="status">JPEG or PNG, up to 30 MB. Images stay in this browser until you send them to the TV.</p></div>
         <div class="preview-wrap">
@@ -75,7 +75,7 @@
             <div class="position-controls"><label>Horizontal <input id="posX" type="range" min="0" max="100" value="50" /></label><label>Vertical <input id="posY" type="range" min="0" max="100" value="50" /></label></div>
             <label class="zoom-control"><span>Trim artwork edges <small id="zoomValue">100%</small></span><input id="zoom" type="range" min="100" max="120" step="1" value="100" aria-label="Zoom in to trim artwork edges" /></label>
           </div>
-          <div class="tv-connect"><div class="tv-connect-heading"><b>Connect your Frame TV</b><button id="transferHelp" class="inline-link" type="button">Find your TV’s IP ↗</button></div><p>Keep the TV and this computer on the same home network. Enter the TV’s IP address below.</p><div class="tv-connect-row"><input id="tvIp" type="text" inputmode="decimal" autocomplete="off" placeholder="192.168.1.50" aria-label="Frame TV IP address" /><button id="pairBtn" type="button">Pair TV</button></div><p id="tvStatus" class="tv-status" role="status">Checking TV connection…</p></div>
+          <div class="tv-connect"><div class="tv-connect-heading"><b>Connect your Frame TV</b><button id="transferHelp" class="inline-link" type="button">Find your TV’s IP ↗</button></div><p>Keep the TV and this computer on the same home network. Enter the TV’s IP address below.</p><div class="tv-connect-row"><input id="tvIp" type="text" inputmode="text" autocapitalize="off" spellcheck="false" autocomplete="off" placeholder="192.168.1.50" aria-label="Frame TV IP address" /><button id="pairBtn" type="button">Pair TV</button></div><p id="tvStatus" class="tv-status" role="status">Checking TV connection…</p></div>
           <button id="sendBtn" class="export-button send-button" disabled><span>Send to Frame TV</span><span>↗</span></button>
           <button id="downloadBtn" class="export-button download-button" disabled><span>Download TV-ready artwork</span><span>↓</span></button>
           <p class="fine-print">Exported at up to 3840 × 2160. Art Mode may add a mat depending on the image and TV settings.</p>
@@ -98,7 +98,11 @@
   </dialog>
   <dialog id="helpDialog"><button class="dialog-close" id="closeDialog" aria-label="Close">×</button><p class="eyebrow">Connect to your Frame</p><h2>Find your TV’s IP address</h2><ol><li>Turn on your TV. Keep it and this computer connected to the same home network.</li><li>On the TV remote, open <b>Settings → All Settings → Connection → Network → Network Status → IP Settings</b>. Find the number labeled <b>IP Address</b>. On older TVs, try <b>Settings → General → Network → Network Status → IP Settings</b>.</li><li>Type that number in Stillroom’s TV address box. Use the numbers and dots only, then select <b>Pair TV</b>.</li><li>Look at the TV and accept the <b>Stillroom</b> connection request. Once paired, choose a work and select <b>Send to Frame TV</b>.</li></ol><p class="dialog-note">If pairing fails, check that the address belongs to the TV, the TV is awake, and neither device is on an isolated guest network. Menus can vary by model. <a href="https://www.samsung.com/ca/support/tv-audio-video/verify-network-status-on-your-samsung-tv/" target="_blank" rel="noopener noreferrer">Samsung’s network guide ↗</a><br />Direct transfer depends on the TV’s Art Mode support. You can always download the JPEG and add it with SmartThings or USB.</p></dialog>
   <dialog id="deleteTvDialog"><p class="eyebrow">Remove from My Photos</p><h2>Delete these TV photos?</h2><p id="deleteTvDialogCopy" class="delete-dialog-copy"></p><div class="delete-dialog-actions"><button id="cancelDeleteTv" type="button">Cancel</button><button id="confirmDeleteTv" type="button">Delete from TV</button></div></dialog>
+  <nav class="mobile-workspace-nav" aria-label="Artwork workspace">
+    <button id="browseArtBtn" type="button" aria-controls="gallery"><span aria-hidden="true">▦</span><span>Browse art</span></button>
+    <button id="composeArtBtn" type="button" aria-controls="composition"><span aria-hidden="true">⤢</span><span>Compose art<small id="mobileCompositionTitle">Preview or upload an image</small></span></button>
+  </nav>
   <footer><span>stillroom <span class="footer-dot">·</span> A quiet corner for good art</span><a id="openAccessLink" href="https://www.si.edu/openaccess/faq" target="_blank" rel="noreferrer">About Open Access ↗</a></footer>
-  <script src="app.js?v=enlarged-preview-2"></script>
+  <script src="app.js?v=mobile-1"></script>
 </body>
 </html>

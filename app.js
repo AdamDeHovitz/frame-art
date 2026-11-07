@@ -53,6 +53,8 @@ function setStatus(text){statusEl.textContent=text}
 function setTvStatus(message,error=false){const el=document.querySelector('#tvStatus');el.textContent=message;el.classList.toggle('error',error)}
 function syncTvButton(){
   document.querySelector('#enlargePreviewBtn').disabled=!art.image;
+  document.querySelector('.preview-wrap').classList.toggle('has-art',Boolean(art.image));
+  document.querySelector('#mobileCompositionTitle').textContent=art.selected?.title||'Preview or upload an image';
   const ready=tv.paired&&tv.available&&!tv.busy&&!tvLibrary.loading&&document.querySelector('#tvIp').value.trim()===tv.ip;
   document.querySelector('#sendBtn').disabled=!art.image||!ready;
   document.querySelector('#sendCollectionBtn').disabled=!ready||!activeCollection||activeCollection.works.length<2;
@@ -154,7 +156,7 @@ function drawGrid(items){
     wrap.append(image);
     const title=document.createElement('b');title.textContent=item.title || 'Untitled';
     const by=document.createElement('small');by.textContent=item.artistDisplayName||'Artist unknown';
-    button.append(wrap,title,by);button.addEventListener('click',()=>select(item,button));grid.append(button);
+    button.append(wrap,title,by);button.addEventListener('click',()=>{select(item,button);if(compactWorkspace.matches)scrollToWorkspace('#composition')});grid.append(button);
   }
 }
 
@@ -171,9 +173,12 @@ async function select(item,button){
   attribution.textContent=[item.artistDisplayName,item.objectDate].filter(Boolean).join(' · ');
   if(item.objectURL){attribution.append(' · ');const source=document.createElement('a');source.href=item.objectURL;source.target='_blank';source.rel='noreferrer';source.textContent=item.museum;source.style.color='inherit';attribution.append(source)}
   document.querySelector('#downloadBtn').disabled=true;document.querySelector('#saveButton').disabled=false;syncSaveButton();syncTvButton();
+  const empty=document.querySelector('#emptyPreview');
+  empty.replaceChildren();
+  const loading=document.createElement('b');loading.textContent='Loading your artwork…';empty.append(loading);empty.hidden=false;
   setStatus('');
   const image=new Image();image.crossOrigin='anonymous';
-  image.onload=()=>{if(selectionId!==art.selectionId)return;art.image=image;drawPreview();document.querySelector('#downloadBtn').disabled=false;syncTvButton()};
+  image.onload=()=>{if(selectionId!==art.selectionId)return;art.image=image;document.querySelector('#emptyPreview').hidden=true;drawPreview();document.querySelector('#downloadBtn').disabled=false;syncTvButton()};
   const imageSizes=item.source==='commons'?['web']:['print','web'];
   const tryImageSize=index=>{
     if(selectionId!==art.selectionId)return;
@@ -198,6 +203,7 @@ function drawPreview(){
   const portrait=art.orientation==='portrait';const large=document.querySelector('#previewDialog').open;
   const W=(portrait?540:960)*(large?2:1),H=(portrait?960:540)*(large?2:1);
   canvas.width=W;canvas.height=H;frame.style.aspectRatio=portrait?'9/16':'16/9';
+  document.querySelector('.preview-wrap').classList.toggle('portrait-preview',portrait);
   if(large)fitEnlargedPreview();
   const crop=cropRect(art.image,W,H,art.x,art.y,art.zoom);
   const xControl=document.querySelector('#posX'),yControl=document.querySelector('#posY');
@@ -406,7 +412,7 @@ function chooseCollection(id,scroll=true){
   document.querySelector('.collection-note').textContent=id==='imports'?'Each image uses its landscape crop. Stillroom rotates this set while the server is running.':'Each work is cropped to 16:9 with a small edge trim. Stillroom rotates this exact set while the server is running.';
   setStatus(`${collection.works.length} ${id==='imports'?'uploaded':'curated'} ${collection.works.length===1?'work':'works'}`);
   renderCollections();syncTvButton();
-  if(scroll)document.querySelector('.gallery-panel').scrollIntoView({behavior:'smooth',block:'start'});
+  if(scroll)scrollToWorkspace('#gallery');
 }
 function setCollectionStatus(message,error=false){const el=document.querySelector('#collectionStatus');el.textContent=message;el.classList.toggle('error',error)}
 async function exportCollectionItem(item){
@@ -466,6 +472,35 @@ async function stopCollectionSlideshow(){
   }catch(error){setCollectionStatus(error.message,true)}
   finally{button.disabled=false}
 }
+
+const compactWorkspace=window.matchMedia('(max-width:960px)');
+function scrollToWorkspace(selector){
+  document.querySelector(selector).scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion:reduce)').matches?'instant':'smooth',block:'start'});
+}
+document.querySelector('#browseArtBtn').addEventListener('click',()=>scrollToWorkspace('#gallery'));
+document.querySelector('#composeArtBtn').addEventListener('click',()=>scrollToWorkspace('#composition'));
+
+// Pointer capture supports touch, pen, and mouse without losing a drag at the frame edge.
+let cropDrag=null;
+canvas.addEventListener('pointerdown',event=>{
+  if(!art.image||!event.isPrimary||event.button!==0)return;
+  const bounds=canvas.getBoundingClientRect();
+  const crop=cropRect(art.image,canvas.width,canvas.height,art.x,art.y,art.zoom);
+  cropDrag={pointerId:event.pointerId,selectionId:art.selectionId,startX:event.clientX,startY:event.clientY,x:art.x,y:art.y,
+    xTravel:(art.image.width-crop.sw)*bounds.width/crop.sw,yTravel:(art.image.height-crop.sh)*bounds.height/crop.sh};
+  canvas.setPointerCapture(event.pointerId);
+});
+canvas.addEventListener('pointermove',event=>{
+  if(!cropDrag||event.pointerId!==cropDrag.pointerId||cropDrag.selectionId!==art.selectionId)return;
+  if(cropDrag.xTravel>0.5)art.x=Math.max(0,Math.min(100,cropDrag.x-(event.clientX-cropDrag.startX)/cropDrag.xTravel*100));
+  if(cropDrag.yTravel>0.5)art.y=Math.max(0,Math.min(100,cropDrag.y-(event.clientY-cropDrag.startY)/cropDrag.yTravel*100));
+  document.querySelector('#posX').value=art.x;document.querySelector('#posY').value=art.y;
+  drawPreview();
+});
+function finishCropDrag(event){if(cropDrag&&event.pointerId===cropDrag.pointerId){cropDrag=null;saveCrop()}}
+canvas.addEventListener('pointerup',finishCropDrag);
+canvas.addEventListener('pointercancel',finishCropDrag);
+canvas.addEventListener('lostpointercapture',finishCropDrag);
 
 // Move the existing preview and controls so both views share one composition.
 const previewDialog=document.querySelector('#previewDialog');
@@ -531,7 +566,7 @@ for(const [id,key] of [['#posX','x'],['#posY','y']])document.querySelector(id).a
 document.querySelector('#zoom').addEventListener('input',e=>{art.zoom=Number(e.target.value);document.querySelector('#zoomValue').textContent=`${art.zoom}%`;saveCrop();drawPreview()});
 document.querySelector('#downloadBtn').addEventListener('click',download);document.querySelector('#saveButton').addEventListener('click',saveSelected);
 document.querySelector('#pairBtn').addEventListener('click',pairTv);document.querySelector('#sendBtn').addEventListener('click',sendToTv);
-document.querySelector('#tvLibraryJump').addEventListener('click',()=>document.querySelector('#tvLibrary').scrollIntoView({behavior:'smooth'}));
+document.querySelector('#tvLibraryJump').addEventListener('click',()=>scrollToWorkspace('#tvLibrary'));
 document.querySelector('#refreshTvPhotos').addEventListener('click',()=>refreshTvPhotos());
 document.querySelector('#loadMoreTvPhotos').addEventListener('click',()=>refreshTvPhotos(false));
 document.querySelector('#deleteTvPhotos').addEventListener('click',openDeleteTvDialog);
