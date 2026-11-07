@@ -64,6 +64,14 @@ Direct transfer uses a community-maintained Art Mode connection over the local n
 
 The TV may add a mat or scale images according to its Art Mode settings. The preview frame finish does not control the physical bezel or the TV's mat setting.
 
+## Our first TV test: Brooklyn in winter
+
+Open the **Brooklyn in winter** collection and select Francis Guy's *Winter Scene in Brooklyn* (1820), [Crystal Bridges accession 2006.98](https://crystalbridges.org/artworks/2006-98). Pair your TV, adjust the landscape crop, and choose **Send to Frame TV**.
+
+The preview uses the museum's 1080 × 598 image, credited to photographer Dwight Primiano. Selecting the work loads a [4545 × 2445 public-domain photograph from Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Winter_Scene_in_Brooklyn_by_Francis_Guy,_Crystal_Bridges_Museum.JPG) for cropping and 4K export. The photograph has some perspective and lighting differences from the museum reproduction; use **Trim artwork edges** as needed. A downloaded reference copy is saved locally in `outputs/test-art/` when present; that folder is ignored by Git.
+
+The server uses those downloaded test images when present, so the first test does not depend on the image hosts accepting another download. If the local copies are absent, it requests the original source URLs.
+
 ## Privacy and publishing
 
 Stillroom runs at `127.0.0.1:8000` on your computer. It stores the TV address and pairing tokens locally in `work/tv/` with owner-only file permissions. Artwork JPEGs are generated in the browser and sent to the local server only for TV transfer. Favorites and crop choices stay in your browser's local storage.

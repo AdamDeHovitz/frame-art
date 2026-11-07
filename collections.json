@@ -1,6 +1,30 @@
 {
   "collections": [
     {
+      "id": "brooklyn-test",
+      "title": "Brooklyn in winter",
+      "description": "Our Frame TV test: Francis Guy’s Winter Scene in Brooklyn (1820), Crystal Bridges. Full-resolution photograph: 4545 × 2445, public domain via Wikimedia Commons. Adjust the crop to trim the photographed edges.",
+      "works": [
+        {
+          "id": "crystal-bridges-2006-98",
+          "source": "crystalbridges",
+          "title": "Winter Scene in Brooklyn",
+          "artistDisplayName": "Francis Guy",
+          "objectDate": "1820",
+          "objectURL": "https://crystalbridges.org/artworks/2006-98",
+          "museum": "Crystal Bridges Museum of American Art",
+          "images": {
+            "web": {
+              "url": "https://dam.aweoffice.org/AssetLink/gw7w4r6i7b15mx6ti528t0x4libmd8br.jpg"
+            },
+            "print": {
+              "url": "https://upload.wikimedia.org/wikipedia/commons/3/3f/Winter_Scene_in_Brooklyn_by_Francis_Guy%2C_Crystal_Bridges_Museum.JPG"
+            }
+          }
+        }
+      ]
+    },
+    {
       "id": "spring",
       "title": "Spring in bloom",
       "description": "Flowers, gardens, and soft green light.",

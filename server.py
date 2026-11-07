@@ -30,6 +30,13 @@ RIJKS_SEARCH_API = "https://data.rijksmuseum.nl/search/collection"
 RIJKS_RECORD_API = "https://data.rijksmuseum.nl"
 RIJKS_PUBLIC_DOMAIN_SET = "https://id.rijksmuseum.nl/260239"
 RIJKS_IMAGE_HOST = "iiif.micr.io"
+# The museum's image for Francis Guy's Winter Scene in Brooklyn (2006.98).
+BROOKLYN_IMAGE_URL = "https://dam.aweoffice.org/AssetLink/gw7w4r6i7b15mx6ti528t0x4libmd8br.jpg"
+BROOKLYN_HD_URL = "https://upload.wikimedia.org/wikipedia/commons/3/3f/Winter_Scene_in_Brooklyn_by_Francis_Guy%2C_Crystal_Bridges_Museum.JPG"
+TEST_ART_CACHE = {
+    BROOKLYN_IMAGE_URL: ROOT / "outputs/test-art/francis-guy-winter-scene-in-brooklyn-1820-crystal-bridges.jpg",
+    BROOKLYN_HD_URL: ROOT / "outputs/test-art/francis-guy-winter-scene-in-brooklyn-1820-crystal-bridges-hd.jpg",
+}
 USER_AGENT = "Stillroom/0.1 (local art display app)"
 RDF = "{http://www.w3.org/1999/02/22-rdf-syntax-ns#}"
 XML_LANG = "{http://www.w3.org/XML/1998/namespace}lang"
@@ -501,14 +508,22 @@ class Handler(SimpleHTTPRequestHandler):
         allowed_commons = parsed.hostname in {COMMONS_IMAGE_HOST, "thumb.wikimedia.org"} and parsed.path.startswith("/wikipedia/commons/")
         allowed_rijks = parsed.hostname == RIJKS_IMAGE_HOST and re.fullmatch(
             r"/[A-Za-z0-9_-]+/full/!(?:1200,1200|3840,3840)/0/default\.jpg", parsed.path)
-        if parsed.scheme != "https" or not (allowed_cleveland or allowed_met or allowed_commons or allowed_rijks):
+        allowed_brooklyn = source == BROOKLYN_IMAGE_URL
+        if parsed.scheme != "https" or not (allowed_cleveland or allowed_met or allowed_commons or allowed_rijks or allowed_brooklyn):
             self.send_error(400, "Only approved museum image URLs are available through this route")
             return
         request = Request(source, headers={"User-Agent": USER_AGENT, "Accept": "image/*" if allowed_commons else "image/jpeg"})
         try:
-            with urlopen(request, timeout=35) as response:
-                payload = response.read(30 * 1024 * 1024 + 1)
-                content_type = response.headers.get_content_type()
+            cached = TEST_ART_CACHE.get(source)
+            if cached and cached.is_file():
+                # Reuse the downloaded test art when its source is rate limited.
+                with cached.open("rb") as image_file:
+                    payload = image_file.read(30 * 1024 * 1024 + 1)
+                content_type = "image/jpeg"
+            else:
+                with urlopen(request, timeout=35) as response:
+                    payload = response.read(30 * 1024 * 1024 + 1)
+                    content_type = response.headers.get_content_type()
             if not (content_type or "").startswith("image/"):
                 self.send_error(415, "The source did not return an image")
                 return
